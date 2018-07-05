@@ -1,14 +1,14 @@
 ;;; abs-mode.el --- ABS major mode for Emacs
 
-;; Copyright (C) 2010  Rudolf Schlatte
+;; Copyright (C) 2010-2018  Rudolf Schlatte
 
-;; Author: Rudi Schlatte <rudi@constantly.at>
+;; Author: Rudolf Schlatte <rudi@constantly.at>
 ;; Keywords: languages
 ;; Version: 0.1.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, version 2.
+;; the Free Software Foundation, version 3.
 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,10 +22,10 @@
 
 ;;; This file contains a mode for the modeling language Abs.
 ;;;
-;;; To simulate models using the Maude backend, you also need maude-mode,
-;;; available from http://sourceforge.net/projects/maude-mode/ -- or now
-;;; included in this directory as well.  To simulate models using the Erlang
-;;; backend, erlang-mode needs to be installed.
+;;; To simulate models using the Maude backend within emacs, you also
+;;; need maude-mode, available from
+;;; https://github.com/rudi/maude-mode.  To simulate models using the
+;;; Erlang backend within emacs, erlang-mode needs to be installed.
 
 (require 'compile)
 (require 'custom)

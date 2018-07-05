@@ -22,9 +22,9 @@
 
 ;; Org-Babel support for evaluating ABS code.  Derived from ob-C.el
 ;;
-;; very limited implementation:
-;; - currently only support :results output
-;; - not much in the way of error feedback
+;; Todo:
+;; - Support not only `:results' output
+;; - Better error feedback
 
 ;;; Code:
 
