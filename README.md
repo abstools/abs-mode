@@ -6,11 +6,13 @@ model, then `C-c C-c` again to run it.
 
 ## Installation
 
-Using the excellent `use-package` package
-(https://github.com/jwiegley/use-package):
+Clone the repository, then add the folloing to your emacs init file (typically `~/.emacs`):
 
 ```elisp
 (use-package abs-mode
   :load-path "~/path/to/abs-mode"
   :mode "\\.abs\\'")
 ```
+
+This uses John Wiegley's excellent `use-package` package
+(https://github.com/jwiegley/use-package), which can be installed via `M-x package-install RET use-package RET`.
