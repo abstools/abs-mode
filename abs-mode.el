@@ -542,46 +542,47 @@ value.")
               (goto-char (point-max))
               (insert "frew start .")
               (comint-send-input)))
-    (`erlang (let ((erlang-buffer (progn
-                                    (when (get-buffer "*erlang*")
-                                      (kill-buffer (get-buffer "*erlang*")))
-                                    (save-excursion
-                                      ;; don't propagate
-                                      ;; interactive args, if any
-                                      (inferior-erlang nil))
-                                    (get-buffer "*erlang*")))
-                   (erlang-dir (concat (file-name-directory (buffer-file-name))
-                                       "gen/erl/absmodel"))
-                   (module (abs--guess-module))
-                   (clock-limit abs-clock-limit)
-                   (port abs-local-port)
-                   (influxdb-enable abs-influxdb-enable)
-                   (influxdb-url abs-influxdb-url)
-                   (influxdb-db abs-influxdb-db))
+    (`erlang (let* ((erlang-buffer (progn
+                                     (when (get-buffer "*erlang*")
+                                       (kill-buffer (get-buffer "*erlang*")))
+                                     (save-excursion
+                                       ;; don't propagate
+                                       ;; interactive args, if any
+                                       (inferior-erlang nil))
+                                     (get-buffer "*erlang*")))
+                    (erlang-dir (concat (file-name-directory (buffer-file-name))
+                                        "gen/erl/absmodel"))
+                    (erlang-code-path
+                     (directory-files-recursively erlang-dir "^ebin$" t))
+                    (module (abs--guess-module))
+                    (clock-limit abs-clock-limit)
+                    (port abs-local-port)
+                    (influxdb-enable abs-influxdb-enable)
+                    (influxdb-url abs-influxdb-url)
+                    (influxdb-db abs-influxdb-db))
                (with-current-buffer erlang-buffer
-                 (comint-send-string erlang-buffer
-                                     (concat "cd (\"" erlang-dir "\").\n"))
-                 (comint-send-string erlang-buffer
-                                     (concat "code:add_paths([\""
-                                             erlang-dir "/ebin\", \""
-                                             erlang-dir "/deps/cowboy/ebin\", \""
-                                             erlang-dir "/deps/cowlib/ebin\", \""
-                                             erlang-dir "/deps/jsx/ebin\", \""
-                                             erlang-dir "/deps/ranch/ebin\"]).\n"))
+                 (comint-send-string
+                  erlang-buffer (concat "cd (\"" erlang-dir "\").\n"))
+                 (comint-send-string
+                  erlang-buffer (concat "code:add_paths([\""
+                                        (reduce
+                                         (lambda (p1 p2) (concat p1 "\", \"" p2))
+                                         erlang-code-path)
+                                        "\"]).\n"))
                  (comint-send-string erlang-buffer "make:all([load]).\n")
-                 (comint-send-string erlang-buffer
-                                     (concat "runtime:start(\""
-                                             (when clock-limit (format " -l %d " clock-limit))
-                                             (when port (format " -p %d " port))
-                                             (when influxdb-enable (format " -i " influxdb-enable))
-                                             (when influxdb-url (format " -u %s " influxdb-url))
-                                             (when influxdb-db (format " -d %s " influxdb-db))
-                                             ;; FIXME: reinstate `module' arg
-                                             ;; once abs--guess-module doesn't
-                                             ;; pick a module w/o main block
+                 (comint-send-string
+                  erlang-buffer (concat "runtime:start(\""
+                                        (when clock-limit (format " -l %d " clock-limit))
+                                        (when port (format " -p %d " port))
+                                        (when influxdb-enable (format " -i " influxdb-enable))
+                                        (when influxdb-url (format " -u %s " influxdb-url))
+                                        (when influxdb-db (format " -d %s " influxdb-db))
+                                        ;; FIXME: reinstate `module' arg
+                                        ;; once abs--guess-module doesn't
+                                        ;; pick a module w/o main block
 
-                                             ;; module
-                                             "\").\n")))
+                                        ;; module
+                                        "\").\n")))
                (pop-to-buffer erlang-buffer)))
     (`java (let* ((module (abs--guess-module))
                   (java-buffer (get-buffer-create (concat "*abs java " module "*")))
