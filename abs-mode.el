@@ -565,7 +565,7 @@ value.")
                   erlang-buffer (concat "cd (\"" erlang-dir "\").\n"))
                  (comint-send-string
                   erlang-buffer (concat "code:add_paths([\""
-                                        (reduce
+                                        (cl-reduce
                                          (lambda (p1 p2) (concat p1 "\", \"" p2))
                                          erlang-code-path)
                                         "\"]).\n"))
