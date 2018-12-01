@@ -33,6 +33,8 @@
 (eval-when-compile (require 'rx))
 (require 'flymake)
 (require 'cl-lib)
+(require 'cc-mode)
+(require 'cc-langs)
 (autoload 'run-maude "maude-mode" nil t)
 (autoload 'inferior-erlang "erlang" nil t)
 
@@ -230,21 +232,34 @@ NIL."
      (list "\\<\\(# \w+\\)\\>" 1 'font-lock-warning-face t))
     "Abs keywords.")
 
+(defvar abs-font-lock-keywords-1 abs-font-lock-keywords)
+(defvar abs-font-lock-keywords-2 abs-font-lock-keywords)
+(defvar abs-font-lock-keywords-3 abs-font-lock-keywords)
+
+;;; Keymap.  `define-derived-mode' would do this for us but we probably need
+;;; `c-make-inherited-keymap'.
+(defvar abs-mode-map (c-make-inherited-keymap)
+  "Keymap for `abs-mode'.")
+
+;;; abbrev
+(c-define-abbrev-table 'abs-mode-abbrev-table
+  '(("else" "else" c-electric-continued-statement 0)))
+
 ;;; Abs syntax table
 (defvar abs-mode-syntax-table (copy-syntax-table)
   "Syntax table for abs-mode.")
-(modify-syntax-entry ?+  "."     abs-mode-syntax-table)
-(modify-syntax-entry ?-  "."     abs-mode-syntax-table)
-(modify-syntax-entry ?=  "."     abs-mode-syntax-table)
-(modify-syntax-entry ?%  "."     abs-mode-syntax-table)
-(modify-syntax-entry ?<  "."     abs-mode-syntax-table)
-(modify-syntax-entry ?>  "."     abs-mode-syntax-table)
-(modify-syntax-entry ?&  "."     abs-mode-syntax-table)
-(modify-syntax-entry ?|  "."     abs-mode-syntax-table)
-(modify-syntax-entry ?/ ". 124" abs-mode-syntax-table)
-(modify-syntax-entry ?* ". 23b"   abs-mode-syntax-table)
-(modify-syntax-entry ?\n ">"   abs-mode-syntax-table)
-(modify-syntax-entry ?\^m ">"  abs-mode-syntax-table)
+(modify-syntax-entry ?+   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?-   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?=   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?%   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?<   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?>   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?&   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?|   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?/   ". 124" abs-mode-syntax-table)
+(modify-syntax-entry ?*   ". 23b" abs-mode-syntax-table)
+(modify-syntax-entry ?\n  ">"     abs-mode-syntax-table)
+(modify-syntax-entry ?\^m ">"     abs-mode-syntax-table)
 
 (defvar abs-imenu-syntax-alist
   ;; Treat dot as symbol constituent to handle qualified identifiers
@@ -656,79 +671,38 @@ A definition can be interface, class, datatype or function."
     (forward-char)))
 
 ;;; Indentation
-
-(defun abs--prev-code-line ()
-  "Moves point to first non-ws char of the previous line containing code.
-Returns point.  Purely whitespace and comment lines are skipped."
-  (back-to-indentation)
-  (while (forward-comment -1))
-  (back-to-indentation)
-  (point))
-
-(defun abs--up-until-line-changes ()
-  (let* ((start-line (line-number-at-pos))
-         (point (point)))
-    (while (and (ignore-errors (up-list) t)
-                (= start-line (line-number-at-pos)))
-      (setq point (point)))
-    point))
-
-(defun abs--calculate-indentation ()
-  (let* ((this-parse-status (save-excursion 
-                              (syntax-ppss (line-beginning-position))))
-         (prev-parse-status (save-excursion
-                              (abs--prev-code-line)
-                              (syntax-ppss (abs--up-until-line-changes))))
-         (end-parse-status (save-excursion (syntax-ppss (abs--up-until-line-changes))))
-         (prev-line-indent (save-excursion (abs--prev-code-line)
-                                           (current-indentation)))
-         (depth-difference-prev-line (- (nth 0 this-parse-status)
-                                        (nth 0 prev-parse-status)))
-         (depth-difference-this-line (- (nth 0 this-parse-status)
-                                        (nth 0 end-parse-status))))
-    (cond
-     ((save-excursion (back-to-indentation)
-                      (looking-at abs-definition-begin-re))
-      ;; At the start of a definition: no indent
-      0)
-     ((> depth-difference-prev-line 0) ; different paren depth
-      (max 0 (+ prev-line-indent (* abs-indent depth-difference-prev-line))))
-     ((> depth-difference-this-line 0)   ; closing paren here
-      (- prev-line-indent (* abs-indent depth-difference-this-line)))
-     (t                        ; Default: indent like the previous line.
-      prev-line-indent))))
-
-(defun abs-indent-line ()
-  "Indent the current line as Abs code.
-Uses the variable `abs-indent'."
-  (interactive)
-  (let ((save-point-position (> (current-column) (current-indentation)))
-	(indentation (abs--calculate-indentation)))
-    (if save-point-position
-	(save-excursion (indent-line-to indentation))
-      (indent-line-to indentation))))
+(c-add-style "abs" '("java"))
 
 ;;; Putting it all together.
+
+(put 'abs-mode 'c-mode-prefix "abs-")
 
 ;;;###autoload
 (define-derived-mode abs-mode prog-mode "Abs"
   "Major mode for editing Abs files.
 
+The hooks `prog-mode-hook' and `c-mode-common-hook' are run with
+no args at mode initialization, then `abs-mode-hook'.
+
 The following keys are set:
 \\{abs-mode-map}"
   :group 'abs
   :syntax-table abs-mode-syntax-table
+  :abbrev-table abs-mode-abbrev-table
+  (c-initialize-cc-mode t)
+  (c-init-language-vars abs-mode)
+  (c-basic-common-init 'abs-mode "abs")
+  (c-common-init 'abs-mode)
+  (setq c-buffer-is-cc-mode 'abs-mode)
   (define-key abs-mode-map "\C-c\C-c" 'abs-next-action)
-  (set (make-local-variable 'comment-start) "//")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "//+\\s-*")
-  (set (make-local-variable 'font-lock-defaults) '(abs-font-lock-keywords))
+  (c-lang-setvar comment-start "//")
+  (c-lang-setvar comment-end "")
+  (c-lang-setvar comment-start-skip "//+\\s-*")
+  (c-lang-setvar font-lock-defaults '(abs-font-lock-keywords))
+  (setq c-opt-cpp-prefix nil)
   ;; Movement
-  (set (make-local-variable 'beginning-of-defun-function)
-       'abs-beginning-of-definition)
-  (set (make-local-variable 'end-of-defun-function) 'abs-end-of-definition)
-  ;; Indentation
-  (set (make-local-variable 'indent-line-function) 'abs-indent-line)
+  (c-lang-setvar beginning-of-defun-function 'abs-beginning-of-definition)
+  (c-lang-setvar end-of-defun-function 'abs-end-of-definition)
   ;; imenu
   (setq imenu-generic-expression abs-imenu-generic-expression)
   (setq imenu-syntax-alist abs-imenu-syntax-alist)
@@ -740,7 +714,8 @@ The following keys are set:
   ;; code coverage (https://github.com/AdamNiederer/cov/blob/master/cov.el)
   (when (featurep 'cov)
     (make-local-variable 'cov-coverage-file-paths)
-    (push "gen/erl/absmodel" cov-coverage-file-paths)))
+    (push "gen/erl/absmodel" cov-coverage-file-paths))
+  (c-run-mode-hooks 'c-mode-common-hook))
 
 ;;; Set up the "Abs" pull-down menu
 (easy-menu-define abs-mode-menu abs-mode-map
