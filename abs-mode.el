@@ -1,11 +1,11 @@
-;;; abs-mode.el --- Major mode for the modeling language Abs
+;;; abs-mode.el --- Major mode for the modeling language Abs -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2018  Rudolf Schlatte
 
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.1
-;; Package-Requires: ((emacs "25") erlang)
+;; Package-Requires: ((emacs "25") erlang maude-mode)
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -26,10 +26,6 @@
 ;;;
 ;;; Documentation for the Abs language is at http://docs.abs-models.org/.
 ;;;
-;;; This mode is sufficient to write Abs models and to simulate (execute) on
-;;; the erlang backend.  To simulate models using the Maude backend within
-;;; emacs, maude-mode needs to be installed, either via melpa or from
-;;; (https://github.com/rudi/maude-mode).
 
 (require 'compile)
 (require 'custom)
@@ -40,7 +36,6 @@
 (require 'cc-mode)
 (require 'cc-langs)
 (require 'erlang)
-;;; not a hard requirement
 (autoload 'run-maude "maude-mode" nil t)
 
 ;;; Code:
@@ -253,7 +248,7 @@ NIL."
 
 ;;; Abs syntax table
 (defvar abs-mode-syntax-table (copy-syntax-table)
-  "Syntax table for abs-mode.")
+  "Syntax table for `abs-mode'.")
 (modify-syntax-entry ?+   "."     abs-mode-syntax-table)
 (modify-syntax-entry ?-   "."     abs-mode-syntax-table)
 (modify-syntax-entry ?=   "."     abs-mode-syntax-table)
@@ -311,6 +306,7 @@ NIL."
 
 ;;; Flymake support: calculate all input files for the current buffer
 (defun abs--current-buffer-referenced-modules ()
+  "Calculate a list of all modules referenced by current buffer."
   (let ((imports (save-excursion
                     (goto-char (point-min))
                     (cl-loop
@@ -332,11 +328,13 @@ NIL."
     (delete-dups (append imports uses))))
 
 (defun abs--file-imports (file)
+  "Calculate a list of all modules referenced by FILE."
   (with-temp-buffer
     (insert-file-contents file)
     (abs--current-buffer-referenced-modules)))
 
 (defun abs--current-buffer-module-definitions ()
+  "Calculate a list of all modules defined in current buffer."
   (save-excursion
     (goto-char (point-min))
     (cl-loop
@@ -348,11 +346,13 @@ NIL."
      collect (substring-no-properties (match-string 1)))))
 
 (defun abs--file-module-definitions (file)
+  "Calculate a list of all modules defined in FILE."
   (with-temp-buffer
     (insert-file-contents file)
     (abs--current-buffer-module-definitions)))
 
 (defun abs--module-file-alist ()
+  "Calculate alist of (file . (modules...)) for all abs files in current dir."
   ;; TODO: consider searching subdirectories, etc., maybe via `project.el' --
   ;; for now, special cases can be handled by the user via setting
   ;; `abs-input-files'.
@@ -418,7 +418,7 @@ buffer:
 // abs-input-files: (\"file1.abs\" \"file2.abs\")
 // End:")
 (put 'abs-input-files 'safe-local-variable
-     (lambda (list) (every #'stringp list)))
+     (lambda (list) (cl-every #'stringp list)))
 
 (defvar abs-compile-command nil
   "The compile command called by \\[abs-next-action].
@@ -445,12 +445,18 @@ value.")
 
 ;;; flymake support
 (defun abs-flymake-mode-on ()
+  "Activate flymake in current buffer if possible.
+Activate flymake if a file exists for the current buffer,
+otherwise arrange to activate flymake upon save.
+
+This function is meant to be added to `abs-mode-hook'."
   (cond ((file-exists-p buffer-file-name)
          (flymake-mode-on)
          (remove-hook 'after-save-hook 'abs-flymake-mode-on t))
         (t (add-hook 'after-save-hook 'abs-flymake-mode-on nil t))))
 
 (defun abs-flymake-init ()
+  "Run flymake in current buffer."
   (when abs-compiler-program
     (let* ((filename (file-name-nondirectory (buffer-file-name)))
            (other-files (delete filename (abs--calculate-input-files))))
@@ -473,20 +479,24 @@ value.")
       (< (cl-first d1) (cl-first d2))))
 
 (defun abs--input-files ()
+  "Return a list of files comprising a complete ABS model."
   (or abs-input-files
       (abs--calculate-input-files)
       (list (buffer-file-name))))
 
 (defun abs--maude-filename ()
+  "Return name of the Maude file to be generated from the ABS model."
   (or abs-maude-output-file
       (concat (file-name-sans-extension (car (abs--input-files))) ".maude")))
 
 (defun abs--absolutify-filename (filename)
+  "Return absolute path for FILENAME."
   (if (file-name-absolute-p filename)
       filename
     (concat (file-name-directory (buffer-file-name)) filename)))
 
 (defun abs--guess-module ()
+  "Guess the name of a module."
   (save-excursion
     (goto-char (point-max))
     (re-search-backward (rx bol (* whitespace) "module" (1+ whitespace)
@@ -494,6 +504,7 @@ value.")
     (buffer-substring-no-properties (match-beginning 1) (match-end 1))))
 
 (defun abs--calculate-compile-command (backend)
+  "Return the command to compile the current model on BACKEND."
   (cond (abs-compile-command)
         ((file-exists-p "Makefile") compile-command)
         (t (concat abs-compiler-program
@@ -524,6 +535,7 @@ value.")
                    " "))))
 
 (defun abs--needs-compilation (backend)
+  "Return non-nil if current file needs to be (re)compiled on BACKEND."
   (let* ((abs-output-file
           (abs--absolutify-filename (pcase backend
                                       (`maude (abs--maude-filename))
@@ -538,12 +550,20 @@ value.")
         (buffer-modified-p))))
 
 (defun abs--compile-model (backend)
+  "Compile the current buffer on BACKEND, showing the command.
+The user will be shown the compile command in the minibuffer and
+can edit it before compilation starts."
   (let ((compile-command (abs--calculate-compile-command backend)))
    (call-interactively 'compile)))
 
 (defun abs--compile-model-no-prompt (backend)
+  "Compile the current buffer on BACKEND."
   (let ((compile-command (abs--calculate-compile-command backend)))
    (compile compile-command)))
+
+;;; Pacify the byte compiler.  This variable is defined in maude-mode, which
+;;; is loaded via `run-maude'.
+(defvar inferior-maude-buffer nil)
 
 (defun abs--run-model (backend)
   "Start the model running on language BACKEND."
@@ -571,7 +591,7 @@ value.")
                                         "gen/erl/absmodel"))
                     (erlang-code-path
                      (directory-files-recursively erlang-dir "^ebin$" t))
-                    (module (abs--guess-module))
+                    ;; (module (abs--guess-module))
                     (clock-limit abs-clock-limit)
                     (port abs-local-port)
                     (influxdb-enable abs-influxdb-enable)
@@ -591,7 +611,7 @@ value.")
                   erlang-buffer (concat "runtime:start(\""
                                         (when clock-limit (format " -l %d " clock-limit))
                                         (when port (format " -p %d " port))
-                                        (when influxdb-enable (format " -i " influxdb-enable))
+                                        (when influxdb-enable (format " -i "))
                                         (when influxdb-url (format " -u %s " influxdb-url))
                                         (when influxdb-db (format " -d %s " influxdb-db))
                                         ;; FIXME: reinstate `module' arg
@@ -607,7 +627,7 @@ value.")
                                    " " module ".Main")))
              (pop-to-buffer java-buffer)
              (shell-command command java-buffer)))
-    (other (error "Don't know how to run with target %s" backend))))
+    (_ (error "Don't know how to run with target %s" backend))))
 
 (defun abs-next-action (flag)
   "Compile or execute the buffer.
@@ -644,6 +664,7 @@ Argument FLAG will prompt for language backend to use if 1."
 ;;; Movement
 
 (defsubst abs--inside-string-or-comment-p ()
+  "Return non-nil if point is inside a string or comment."
   (let ((state (save-excursion (syntax-ppss))))
     (or (nth 3 state) (nth 4 state))))
 
@@ -679,8 +700,34 @@ A definition can be interface, class, datatype or function."
 ;;; Indentation
 (c-add-style "abs" '("java"))
 
-;;; Putting it all together.
+;;; Set up the "Abs" pull-down menu
+(easy-menu-define abs-mode-menu abs-mode-map
+  "Abs mode menu."
+  '("Abs"
+    ["Compile" (abs--compile-model-no-prompt abs-target-language) :active t]
+    ["Run" (abs--run-model abs-target-language)
+     :active (not (abs--needs-compilation abs-target-language))]
+    "---"
+    ("Select Backend"
+     ["Maude" (setq abs-target-language 'maude)
+      :active t
+      :style radio
+      :selected (eq abs-target-language 'maude)]
+     ["Erlang" (setq abs-target-language 'erlang)
+      :active t
+      :style radio
+      :selected (eq abs-target-language 'erlang)]
+     ["Java" (setq abs-target-language 'java)
+      :active t
+      :style radio
+      :selected (eq abs-target-language 'java)])
+    ("Maude Backend Options"
+     ["Timed interpreter"
+      (setq abs-use-timed-interpreter (not abs-use-timed-interpreter))
+      :active t :style toggle
+      :selected abs-use-timed-interpreter])))
 
+;;; Putting it all together.
 (put 'abs-mode 'c-mode-prefix "abs-")
 
 ;;;###autoload
@@ -726,32 +773,6 @@ The following keys are set:
     (push "gen/erl/absmodel" cov-coverage-file-paths))
   (c-run-mode-hooks 'c-mode-common-hook))
 
-;;; Set up the "Abs" pull-down menu
-(easy-menu-define abs-mode-menu abs-mode-map
-  "Abs mode menu."
-  '("Abs"
-    ["Compile" (abs--compile-model-no-prompt abs-target-language) :active t]
-    ["Run" (abs--run-model abs-target-language)
-     :active (not (abs--needs-compilation abs-target-language))]
-    "---"
-    ("Select Backend"
-     ["Maude" (setq abs-target-language 'maude)
-      :active t
-      :style radio
-      :selected (eq abs-target-language 'maude)]
-     ["Erlang" (setq abs-target-language 'erlang)
-      :active t
-      :style radio
-      :selected (eq abs-target-language 'erlang)]
-     ["Java" (setq abs-target-language 'java)
-      :active t
-      :style radio
-      :selected (eq abs-target-language 'java)])
-    ("Maude Backend Options"
-     ["Timed interpreter"
-      (setq abs-use-timed-interpreter (not abs-use-timed-interpreter))
-      :active t :style toggle
-      :selected abs-use-timed-interpreter])))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.abs\\'" . abs-mode))
