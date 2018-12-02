@@ -4,7 +4,7 @@
 
 ;; Author: Rudolf Schlatte <rudi@constantly.at>
 ;; Keywords: languages
-;; Version: 1.0
+;; Version: 1.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,10 +22,13 @@
 
 ;;; This file contains a mode for the modeling language Abs.
 ;;;
-;;; To simulate models using the Maude backend within emacs, you also
-;;; need maude-mode, available from
-;;; https://github.com/rudi/maude-mode.  To simulate models using the
-;;; Erlang backend within emacs, erlang-mode needs to be installed.
+;;; Documentation for the Abs language is at http://docs.abs-models.org/.
+;;;
+;;; This mode is sufficient to write Abs models.  To simulate models using the
+;;; Maude backend within emacs, maude-mode needs to be installed
+;;; (https://github.com/rudi/maude-mode).  To simulate models using the Erlang
+;;; backend within emacs, erlang-mode needs to be installed, which is
+;;; distributed with the Erlang language.
 
 (require 'compile)
 (require 'custom)
@@ -232,12 +235,13 @@ NIL."
      (list "\\<\\(# \w+\\)\\>" 1 'font-lock-warning-face t))
     "Abs keywords.")
 
+;;; cc-mode wants different fontification levels, but we only offer one.
 (defvar abs-font-lock-keywords-1 abs-font-lock-keywords)
 (defvar abs-font-lock-keywords-2 abs-font-lock-keywords)
 (defvar abs-font-lock-keywords-3 abs-font-lock-keywords)
 
-;;; Keymap.  `define-derived-mode' would do this for us but we probably need
-;;; `c-make-inherited-keymap'.
+;;; Keymap.  `define-derived-mode' would probably do this for us but we use
+;;; `c-make-inherited-keymap' just to make sure cc-mode is happy.
 (defvar abs-mode-map (c-make-inherited-keymap)
   "Keymap for `abs-mode'.")
 
@@ -303,10 +307,7 @@ NIL."
 ;;; Minimal auto-insert mode support
 (define-auto-insert 'abs-mode '("Module name: " "module " str ";" ?\n ?\n))
 
-
-;;; Calculating the set of required input files based on the current buffer.
-;;;
-
+;;; Flymake support: calculate all input files for the current buffer
 (defun abs--current-buffer-referenced-modules ()
   (let ((imports (save-excursion
                     (goto-char (point-min))
@@ -350,8 +351,9 @@ NIL."
     (abs--current-buffer-module-definitions)))
 
 (defun abs--module-file-alist ()
-  ;; TODO: consider searching subdirectories, etc. -- for now, special cases
-  ;; can be handled by the user via setting `abs-input-files'
+  ;; TODO: consider searching subdirectories, etc., maybe via `project.el' --
+  ;; for now, special cases can be handled by the user via setting
+  ;; `abs-input-files'.
   (let ((module-file-alist nil))
     (dolist (file (directory-files "." nil "\\.abs\\'" t))
       (dolist (module (abs--file-module-definitions file))
@@ -359,6 +361,8 @@ NIL."
     module-file-alist))
 
 (defun abs--calculate-input-files ()
+  "Calculate the set of required input files to compile the current buffer.
+This is used to invoke flymake properly."
   (let* ((module-locations-alist (abs--module-file-alist))
          (files (list (file-name-nondirectory (buffer-file-name))))
          (known-modules (abs--file-module-definitions buffer-file-name))
@@ -681,8 +685,8 @@ A definition can be interface, class, datatype or function."
 (define-derived-mode abs-mode prog-mode "Abs"
   "Major mode for editing Abs files.
 
-The hooks `prog-mode-hook' and `c-mode-common-hook' are run with
-no args at mode initialization, then `abs-mode-hook'.
+The hooks `prog-mode-hook' and `c-mode-common-hook' are run at
+mode initialization, then `abs-mode-hook'.
 
 The following keys are set:
 \\{abs-mode-map}"
@@ -694,6 +698,9 @@ The following keys are set:
   (c-basic-common-init 'abs-mode "abs")
   (c-common-init 'abs-mode)
   (setq c-buffer-is-cc-mode 'abs-mode)
+  ;; This keybinding unfortunately overrides a cc-mode keybinding but was
+  ;; established before we inherited from c-common-mode.  Keep it like this
+  ;; for the benefit of the existing user base.
   (define-key abs-mode-map "\C-c\C-c" 'abs-next-action)
   (c-lang-setvar comment-start "//")
   (c-lang-setvar comment-end "")
