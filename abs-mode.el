@@ -2,9 +2,12 @@
 
 ;; Copyright (C) 2010-2018  Rudolf Schlatte
 
-;; Author: Rudolf Schlatte <rudi@constantly.at>
-;; Keywords: languages
+;; Author: Rudi Schlatte <rudi@constantly.at>
+;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.1
+;; Package-Version: 1.1
+;; Package-Requires: ((emacs "25") erlang)
+;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,15 +23,14 @@
 
 ;;; Commentary:
 
-;;; This file contains a mode for the modeling language Abs.
+;;; A major mode for editing files for the modeling language Abs.
 ;;;
 ;;; Documentation for the Abs language is at http://docs.abs-models.org/.
 ;;;
-;;; This mode is sufficient to write Abs models.  To simulate models using the
-;;; Maude backend within emacs, maude-mode needs to be installed
-;;; (https://github.com/rudi/maude-mode).  To simulate models using the Erlang
-;;; backend within emacs, erlang-mode needs to be installed, which is
-;;; distributed with the Erlang language.
+;;; This mode is sufficient to write Abs models and to simulate (execute) on
+;;; the erlang backend.  To simulate models using the Maude backend within
+;;; emacs, maude-mode needs to be installed, either via melpa or from
+;;; (https://github.com/rudi/maude-mode).
 
 (require 'compile)
 (require 'custom)

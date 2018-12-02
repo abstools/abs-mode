@@ -2,8 +2,12 @@
 
 ;; Copyright (C) 2018 Rudolf Schlatte
 
-;; Author: Rudolf Schlatte <rudi@constantly.at>
-;; Keywords: literate programming, reproducible research, data, docs, languages
+;; Author: Rudi Schlatte <rudi@constantly.at>
+;; URL: https://github.com/abstools/abs-mode
+;; Version: 1.1
+;; Package-Version: 1.1
+;; Package-Requires: ((emacs "25") abs-mode)
+;; Keywords: literate programming, reproducible research
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,28 +24,25 @@
 
 ;;; Commentary:
 
-;; Org-Babel support for evaluating ABS code.  Derived from ob-C.el
+;; Org-Babel support for evaluating Abs code in org-mode files.
 ;;
-;; Todo:
-;; - Support not only `:results' output
-;; - Better error feedback
+;; This file follows the approach of `ob-C.el' since Abs also is a language
+;; without a REPL.
 
 ;;; Code:
 
 (require 'abs-mode)
 (require 'ob)
 
-;; * [3/6] TODOs
-;; 
+;; * [4/7] TODOs
+;;
 ;; - [X] auto-create module
 ;; - [X] parameters: simple
 ;; - [X] parameters: list
-;; - [ ] parameters: matrix
-;; - [ ] parse output: simple
-;; - [ ] parse output: reassemble lists / tables
-;; 
-;; * [0/1] Maybe
-;; - [ ] auto-create main block when code block is not surrounded by { }
+;; - [ ] parameters: 2d matrix
+;; - [X] verbatim output
+;; - [ ] parse output: single result
+;; - [ ] parse output: list or table
 
 (declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
 (declare-function org-remove-indentation "org" (code &optional n))
