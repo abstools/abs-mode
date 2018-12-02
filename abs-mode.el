@@ -417,12 +417,10 @@ value.")
   "^[^\0-@]+ \"\\(^\"\n]+\\)\", [^\0-@]+ \\([0-9]+\\)[-,:]\\([0-9]+\\)[-,:]\\([Ww]arning\\)?"
   "Regular expression matching the error messages produced by the abs compiler.")
 
-(unless (member 'abs compilation-error-regexp-alist)
-  (add-to-list 'compilation-error-regexp-alist 'abs t))
+(add-to-list 'compilation-error-regexp-alist 'abs t)
 
-(unless (assoc 'abs compilation-error-regexp-alist-alist)
-  (add-to-list 'compilation-error-regexp-alist-alist
-               (list 'abs abs-error-regexp 1 2 3 '(4))))
+(add-to-list 'compilation-error-regexp-alist-alist
+             (list 'abs abs-error-regexp 1 2 3 '(4)))
 
 ;;; flymake support
 (defun abs-flymake-mode-on ()
@@ -444,9 +442,7 @@ value.")
                      'flymake-create-temp-inplace)
                     other-files))))))
 
-(unless (assoc "\\.abs\\'" flymake-allowed-file-name-masks)
-  (add-to-list 'flymake-allowed-file-name-masks
-               '("\\.abs\\'" abs-flymake-init)))
+(add-to-list 'flymake-allowed-file-name-masks '("\\.abs\\'" abs-flymake-init))
 
 ;;; Compilation support
 (defun abs--file-date-< (d1 d2)
@@ -774,8 +770,7 @@ The following keys are set:
       :selected abs-use-timed-interpreter])))
 
 ;;;###autoload
-(unless (assoc "\\.abs\\'" auto-mode-alist)
-  (add-to-list 'auto-mode-alist '("\\.abs\\'" . abs-mode)))
+(add-to-list 'auto-mode-alist '("\\.abs\\'" . abs-mode))
 
 
 (provide 'abs-mode)
