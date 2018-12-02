@@ -1,11 +1,10 @@
-;;; abs-mode.el --- ABS major mode for Emacs
+;;; abs-mode.el --- Major mode for the modeling language Abs
 
 ;; Copyright (C) 2010-2018  Rudolf Schlatte
 
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.1
-;; Package-Version: 1.1
 ;; Package-Requires: ((emacs "25") erlang)
 ;; Keywords: languages
 

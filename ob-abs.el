@@ -1,11 +1,10 @@
-;;; ob-abs.el --- Babel Functions for abs -*- lexical-binding: t; -*-
+;;; ob-abs.el --- org-babel functions for Abs -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2018 Rudolf Schlatte
 
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.1
-;; Package-Version: 1.1
 ;; Package-Requires: ((emacs "25") abs-mode)
 ;; Keywords: literate programming, reproducible research
 
