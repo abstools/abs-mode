@@ -38,8 +38,9 @@
 (require 'cl-lib)
 (require 'cc-mode)
 (require 'cc-langs)
+(require 'erlang)
+;;; not a hard requirement
 (autoload 'run-maude "maude-mode" nil t)
-(autoload 'inferior-erlang "erlang" nil t)
 
 ;;; Code:
 
