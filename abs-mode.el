@@ -69,11 +69,7 @@ executable via the `-cp' argument."
   :group 'abs)
 (put 'abs-java-classpath 'risky-local-variable t)
 
-(defcustom abs-indent standard-indent
-  "The width of one indentation step for Abs code."
-  :type 'integer
-  :group 'abs)
-(put 'abs-indent 'safe-local-variable 'integerp)
+(define-obsolete-variable-alias 'abs-indent 'c-basic-offset "v1.1")
 
 (defcustom abs-use-timed-interpreter nil
   "Control whether Abs code uses the timed Maude interpreter by default.
@@ -698,7 +694,11 @@ A definition can be interface, class, datatype or function."
     (forward-char)))
 
 ;;; Indentation
-(c-add-style "abs" '("java"))
+(c-add-style
+ "abs" '("java"
+         (c-offsets-alist
+          ;; don't indent a class definition preceded by an annotation
+          (topmost-intro-cont . 0))))
 
 ;;; Set up the "Abs" pull-down menu
 (easy-menu-define abs-mode-menu abs-mode-map
@@ -747,6 +747,7 @@ The following keys are set:
   (c-basic-common-init 'abs-mode "abs")
   (c-common-init 'abs-mode)
   (setq c-buffer-is-cc-mode 'abs-mode)
+  (c-set-style "abs" 1)
   ;; This keybinding unfortunately overrides a cc-mode keybinding but was
   ;; established before we inherited from c-common-mode.  Keep it like this
   ;; for the benefit of the existing user base.
