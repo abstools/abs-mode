@@ -5,7 +5,7 @@
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.1
-;; Package-Requires: ((emacs "25") erlang maude-mode)
+;; Package-Requires: ((emacs "25") (erlang "0") (maude-mode "0"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -55,7 +55,7 @@
 (put 'abs-target-language 'safe-local-variable
      #'(lambda (x) (member x '(maude java erlang prolog))))
 
-(defcustom abs-compiler-program (or (executable-find "absc") "absc")
+(defcustom abs-compiler-program "absc"
   "Path to the Abs compiler."
   :type 'file
   :group 'abs)
