@@ -459,8 +459,6 @@ This function is meant to be added to `abs-mode-hook'."
       (list
        abs-compiler-program
        (remove nil (cl-list*
-                    (when (string= filename "abslang.abs")
-                      "-nostdlib")
                     (flymake-init-create-temp-buffer-copy
                      'flymake-create-temp-inplace)
                     other-files))))))
