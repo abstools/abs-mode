@@ -148,35 +148,39 @@ NIL."
 (put 'abs-product-name 'safe-local-variable 'stringp)
 
 ;;; Making faces
+
+(defgroup abs-faces nil "Faces for abs mode."
+  :group 'abs)
+
 (defface abs-keyword-face '((default (:inherit font-lock-keyword-face)))
   "Face for Abs keywords"
-  :group 'abs)
+  :group 'abs-faces)
 (defvar abs-keyword-face 'abs-keyword-face
   "Face for Abs keywords.")
 
 (defface abs-constant-face '((default (:inherit font-lock-constant-face)))
   "Face for Abs constants"
-  :group 'abs)
+  :group 'abs-faces)
 (defvar abs-constant-face 'abs-constant-face
   "Face for Abs constants.")
 
 (defface abs-function-name-face
     '((default (:inherit font-lock-function-name-face)))
   "Face for Abs function-names"
-  :group 'abs)
+  :group 'abs-faces)
 (defvar abs-function-name-face 'abs-function-name-face
   "Face for Abs function-names.")
 
 (defface abs-type-face '((default (:inherit font-lock-type-face)))
   "Face for Abs types"
-  :group 'abs)
+  :group 'abs-faces)
 (defvar abs-type-face 'abs-type-face
   "Face for Abs types.")
 
 (defface abs-variable-name-face
     '((default (:inherit font-lock-variable-name-face)))
   "Face for Abs variables"
-  :group 'abs)
+  :group 'abs-faces)
 (defvar abs-variable-name-face 'abs-variable-name-face
   "Face for Abs variables.")
 
