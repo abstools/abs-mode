@@ -22,10 +22,10 @@
 
 ;;; Commentary:
 
-;;; A major mode for editing files for the modeling language Abs.
-;;;
-;;; Documentation for the Abs language is at http://docs.abs-models.org/.
-;;;
+;; A major mode for editing files for the modeling language Abs.
+;;
+;; Documentation for the Abs language is at http://docs.abs-models.org/.
+;;
 
 (require 'compile)
 (require 'custom)
