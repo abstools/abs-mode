@@ -6,7 +6,22 @@ model, then `C-c C-c` again to run it.
 
 ## Installation
 
-Clone the repository, then add the folloing to your emacs init file (typically `~/.emacs`):
+It is recommended to use the MELPA package archive to install abs-mode.  Add the following lines near the beginning of your emacs init file (typically `~/.emacs`):
+
+```elisp
+(require 'package)
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+(package-initialize)
+```
+
+Restart emacs, then install abs-mode via `M-x package-install RET
+abs-mode RET`, or run `M-x list-packages`, select abs-mode from the
+list (press `i` on its line) and install (press `x`)..
+
+## Installation from source
+
+Clone the repository, then add the following to your emacs init file (typically `~/.emacs`):
 
 ```elisp
 (use-package abs-mode
