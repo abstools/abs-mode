@@ -598,7 +598,8 @@ can edit it before compilation starts."
                  (inferior-erlang erl-command))))
     (`java (let* ((module (abs--guess-module))
                   (java-buffer (get-buffer-create (concat "*abs java " module "*")))
-                  (command (concat "java -cp gen:" abs-java-classpath
+                  (command (concat "java -cp gen:"
+                                   (expand-file-name abs-java-classpath)
                                    " " module ".Main")))
              (pop-to-buffer java-buffer)
              (shell-command command java-buffer)))
