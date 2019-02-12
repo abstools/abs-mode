@@ -249,6 +249,7 @@ NIL."
 ;;; Abs syntax table
 (defvar abs-mode-syntax-table (copy-syntax-table)
   "Syntax table for `abs-mode'.")
+(modify-syntax-entry ?`   "\""    abs-mode-syntax-table)
 (modify-syntax-entry ?+   "."     abs-mode-syntax-table)
 (modify-syntax-entry ?-   "."     abs-mode-syntax-table)
 (modify-syntax-entry ?=   "."     abs-mode-syntax-table)
