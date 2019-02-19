@@ -593,9 +593,16 @@ can edit it before compilation starts."
                     (erl-command (concat script args)))
                (when (get-buffer "*erlang*")
                  (kill-buffer (get-buffer "*erlang*")))
-               (save-excursion
-                 ;; don't propagate
-                 ;; interactive args, if any
+               (if (eq window-system 'w32)
+                   ;; `inferior-erlang' tries calling `/bin/sh' when
+                   ;; given a parameter, even on windows; dodge the
+                   ;; issue by calling our own `run.bat' script
+                   ;; instead
+                   (let ((buffer (get-buffer-create "*erlang*")))
+                     (pop-to-buffer buffer)
+                     ;; this works since we don't support `absc -d',
+                     ;; so we always have `gen/erl/run.bat'
+                     (shell-command (concat "gen\\erl\\run.bat " args) buffer))
                  (inferior-erlang erl-command))))
     (`java (let* ((module (abs--guess-module))
                   (java-buffer (get-buffer-create (concat "*abs java " module "*")))
