@@ -1,3 +1,6 @@
+[![MELPA](https://melpa.org/packages/abs-mode-badge.svg)](https://melpa.org/#/abs-mode)
+[![MELPA Stable](https://stable.melpa.org/packages/abs-mode-badge.svg)](https://stable.melpa.org/#/abs-mode)
+
 # An Emacs major mode for the Abs language
 
 Add support for Abs (http://docs.abs-models.org) in Emacs, including
