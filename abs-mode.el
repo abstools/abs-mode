@@ -507,7 +507,7 @@ This function is meant to be added to `abs-mode-hook'."
   (cond (abs-compile-command)
         ((file-exists-p "Makefile") compile-command)
         (t (concat abs-compiler-program
-                   " -" (symbol-name backend)
+                   " --" (symbol-name backend)
                    " "
                    ;; FIXME: make it work with filenames with spaces
                    (mapconcat (lambda (s) (concat "\"" s "\""))
@@ -515,18 +515,18 @@ This function is meant to be added to `abs-mode-hook'."
                    (when (eql backend 'maude)
                      (concat " -o \"" (abs--maude-filename) "\""))
                    (when abs-product-name
-                     (concat " -product=" abs-product-name))
+                     (concat " --product " abs-product-name))
                    (when (and (eql backend 'maude)
                               (or abs-use-timed-interpreter
                                   (local-variable-p 'abs-clock-limit)))
-                     (concat " -timed -limit="
+                     (concat " --timed --limit="
                              (number-to-string (or abs-clock-limit 100))))
                    (when (and (eql backend 'maude)
                               (< 0 abs-default-resourcecost))
-                     (concat " -defaultcost="
+                     (concat " --defaultcost "
                              (number-to-string abs-default-resourcecost)))
                    (when (and (eq backend 'erlang) abs-compile-with-coverage-info)
-                     " -cover")
+                     " --debuginfo")
                    ;; this branch must be last since it invokes a second
                    ;; command after `absc'
                    (when (and (eq backend 'erlang) abs-link-source-path)
