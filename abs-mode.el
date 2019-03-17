@@ -5,7 +5,7 @@
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.1
-;; Package-Requires: ((emacs "25") (erlang "0") (maude-mode "0") (flymake "0.3") (flymake-proc "0.3"))
+;; Package-Requires: ((emacs "25") (erlang "0") (maude-mode "0") (flymake "0.3"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,6 @@
 (require 'easymenu)
 (eval-when-compile (require 'rx))
 (require 'flymake)
-(require 'flymake-proc)
 (require 'cl-lib)
 (require 'cc-mode)
 (require 'cc-langs)
@@ -464,13 +463,18 @@ This function is meant to be added to `abs-mode-hook'."
   "Run flymake in current buffer."
   (when abs-compiler-program
     (let* ((filename (file-name-nondirectory (buffer-file-name)))
-           (other-files (delete filename (abs--calculate-input-files))))
+           (other-files (delete filename (abs--calculate-input-files)))
+           (temp-filename
+            (if (fboundp 'flymake-proc-init-create-temp-buffer-copy)
+                (flymake-proc-init-create-temp-buffer-copy
+                 'flymake-proc-create-temp-inplace)
+              (with-no-warnings
+                ;; these functions are declared obsolete on emacs>25
+                (flymake-init-create-temp-buffer-copy
+                 'flymake-create-temp-inplace)))))
       (list
        abs-compiler-program
-       (remove nil (cl-list*
-                    (flymake-proc-init-create-temp-buffer-copy
-                     'flymake-proc-create-temp-inplace)
-                    other-files))))))
+       (remove nil (cl-list* temp-filename other-files))))))
 
 (add-to-list 'flymake-allowed-file-name-masks '("\\.abs\\'" abs-flymake-init))
 
