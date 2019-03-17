@@ -1,0 +1,9 @@
+*~
+*.elc
+
+# generated files
+abs-mode-autoloads.el
+.cask
+.emacs/elpa/
+.emacs/quelpa/
+.emacs/.emacs-custom.el
