@@ -20,7 +20,7 @@ lint: .elpa
 	$(EMACS) $(BATCH) -l $(ELL) -f elisp-lint-files-batch $(ELS)
 
 clean:
-	rm -f $(OBJECTS) $(BACKUPS) emacs-dashboard-autoloads.el*
+	rm -f $(OBJECTS) $(BACKUPS) abs-mode-autoloads.el*
 
 cleanelpa: clean
 	rm -rf .emacs/elpa .emacs/quelpa .emacs/.emacs-custom.el* .elpa
