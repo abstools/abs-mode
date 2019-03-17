@@ -7,3 +7,4 @@ abs-mode-autoloads.el
 .emacs/elpa/
 .emacs/quelpa/
 .emacs/.emacs-custom.el
+.elpa
