@@ -5,7 +5,7 @@
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.1
-;; Package-Requires: ((emacs "25") (erlang "0") (maude-mode "0"))
+;; Package-Requires: ((emacs "25") (erlang "0") (maude-mode "0") (flymake "0.3") (flymake-proc "0.3"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -32,10 +32,11 @@
 (require 'easymenu)
 (eval-when-compile (require 'rx))
 (require 'flymake)
+(require 'flymake-proc)
 (require 'cl-lib)
 (require 'cc-mode)
 (require 'cc-langs)
-(require 'erlang)
+(require 'erlang-start)
 (autoload 'run-maude "maude-mode" nil t)
 
 ;;; Code:
@@ -165,7 +166,7 @@ NIL."
   "Face for Abs constants.")
 
 (defface abs-function-name-face
-    '((default (:inherit font-lock-function-name-face)))
+  '((default (:inherit font-lock-function-name-face)))
   "Face for Abs function-names"
   :group 'abs-faces)
 (defvar abs-function-name-face 'abs-function-name-face
@@ -178,7 +179,7 @@ NIL."
   "Face for Abs types.")
 
 (defface abs-variable-name-face
-    '((default (:inherit font-lock-variable-name-face)))
+  '((default (:inherit font-lock-variable-name-face)))
   "Face for Abs variables"
   :group 'abs-faces)
 (defvar abs-variable-name-face 'abs-variable-name-face
@@ -221,16 +222,16 @@ NIL."
   "List of Abs special words.")
 
 (defvar abs-font-lock-keywords
-    (list
-     ;; order is important here; earlier entries override later ones
-     (cons abs-keywords 'abs-keyword-face)
-     (cons abs-constants 'abs-constant-face)
-     (cons (concat "\\(" abs--cid-regexp "\\)") 'abs-type-face)
-     (list (concat "\\(" abs--id-regexp "\\)[[:space:]]*(") 1
-           'abs-function-name-face)
-     (cons (concat "\\(" abs--id-regexp "\\)") 'abs-variable-name-face)
-     (list "\\<\\(# \w+\\)\\>" 1 'font-lock-warning-face t))
-    "Abs keywords.")
+  (list
+   ;; order is important here; earlier entries override later ones
+   (cons abs-keywords 'abs-keyword-face)
+   (cons abs-constants 'abs-constant-face)
+   (cons (concat "\\(" abs--cid-regexp "\\)") 'abs-type-face)
+   (list (concat "\\(" abs--id-regexp "\\)[[:space:]]*(") 1
+         'abs-function-name-face)
+   (cons (concat "\\(" abs--id-regexp "\\)") 'abs-variable-name-face)
+   (list "\\<\\(# \w+\\)\\>" 1 'font-lock-warning-face t))
+  "Abs keywords.")
 
 ;;; cc-mode wants different fontification levels, but we only offer one.
 (defvar abs-font-lock-keywords-1 abs-font-lock-keywords)
@@ -243,6 +244,9 @@ NIL."
   "Keymap for `abs-mode'.")
 
 ;;; abbrev
+(define-abbrev-table 'abs-mode-abbrev-table nil
+  ;; defined separately for the benefit of elisp-int
+  "Abbrev table for `abs-mode'.")
 (c-define-abbrev-table 'abs-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)))
 
@@ -268,38 +272,38 @@ NIL."
   '(("." . "_")))
 
 (defvar abs-imenu-generic-expression
-    `(("Deltas"
-       ,(rx bol (* whitespace) "delta" (1+ whitespace)
-            (group (char upper) (* (char alnum))))
-       1)
-      ("Functions"
-       ,(rx bol (* whitespace) "def" (1+ whitespace)
-            (char upper) (* (or (char alnum) "<" ">"))
-            (1+ whitespace)
-            ;; not quite correct since the last part of a qualified name
-            ;; should start with lowercase.
-            (group (* (char alnum))))
-       1)
-      ("Datatypes"
-       ,(rx bol (* whitespace) (or "data" "type") (1+ whitespace)
-            (group (char upper) (* (char alnum))))
-       1)
-      ("Exceptions"
-       ,(rx bol (* whitespace) "exception" (1+ whitespace)
-            (group (char upper) (* (char alnum))))
-       1)
-      ("Classes"
-       ,(rx bol (* whitespace) "class" (1+ whitespace)
-            (group (char upper) (* (char alnum))))
-       1)
-      ("Interfaces"
-       ,(rx bol (* whitespace) "interface" (1+ whitespace)
-            (group (char upper) (* (char alnum))))
-       1)
-      ("Modules"
-       ,(rx bol (* whitespace) "module" (1+ whitespace)
-            (group (char upper) (* (or (char alnum) "."))))
-       1))
+  `(("Deltas"
+     ,(rx bol (* whitespace) "delta" (1+ whitespace)
+          (group (char upper) (* (char alnum))))
+     1)
+    ("Functions"
+     ,(rx bol (* whitespace) "def" (1+ whitespace)
+          (char upper) (* (or (char alnum) "<" ">"))
+          (1+ whitespace)
+          ;; not quite correct since the last part of a qualified name
+          ;; should start with lowercase.
+          (group (* (char alnum))))
+     1)
+    ("Datatypes"
+     ,(rx bol (* whitespace) (or "data" "type") (1+ whitespace)
+          (group (char upper) (* (char alnum))))
+     1)
+    ("Exceptions"
+     ,(rx bol (* whitespace) "exception" (1+ whitespace)
+          (group (char upper) (* (char alnum))))
+     1)
+    ("Classes"
+     ,(rx bol (* whitespace) "class" (1+ whitespace)
+          (group (char upper) (* (char alnum))))
+     1)
+    ("Interfaces"
+     ,(rx bol (* whitespace) "interface" (1+ whitespace)
+          (group (char upper) (* (char alnum))))
+     1)
+    ("Modules"
+     ,(rx bol (* whitespace) "module" (1+ whitespace)
+          (group (char upper) (* (or (char alnum) "."))))
+     1))
   "Imenu expression for `abs-mode'.  See `imenu-generic-expression'.")
 
 ;;; Minimal auto-insert mode support
@@ -309,23 +313,23 @@ NIL."
 (defun abs--current-buffer-referenced-modules ()
   "Calculate a list of all modules referenced by current buffer."
   (let ((imports (save-excursion
-                    (goto-char (point-min))
-                    (cl-loop
-                     for match = (re-search-forward (rx bol (0+ blank) bow "import" eow (1+ any) bow "from" eow (1+ blank)
-                                                        (group (1+ (or (syntax word) ".")))
-                                                        (0+ blank) ";")
-                                                    (point-max) t)
-                     while match
-                     collect (substring-no-properties (match-string 1)))))
+                   (goto-char (point-min))
+                   (cl-loop
+                    for match = (re-search-forward (rx bol (0+ blank) bow "import" eow (1+ any) bow "from" eow (1+ blank)
+                                                       (group (1+ (or (syntax word) ".")))
+                                                       (0+ blank) ";")
+                                                   (point-max) t)
+                    while match
+                    collect (substring-no-properties (match-string 1)))))
         (uses (save-excursion
-                    (goto-char (point-min))
-                    (cl-loop
-                     for match = (re-search-forward (rx bol (0+ blank) bow "uses" eow (1+ blank)
-                                                        (group (1+ (or (syntax word) ".")))
-                                                        (0+ blank) ";")
-                                                    (point-max) t)
-                     while match
-                     collect (substring-no-properties (match-string 1))))))
+                (goto-char (point-min))
+                (cl-loop
+                 for match = (re-search-forward (rx bol (0+ blank) bow "uses" eow (1+ blank)
+                                                    (group (1+ (or (syntax word) ".")))
+                                                    (0+ blank) ";")
+                                                (point-max) t)
+                 while match
+                 collect (substring-no-properties (match-string 1))))))
     (delete-dups (append imports uses))))
 
 (defun abs--file-imports (file)
@@ -452,7 +456,7 @@ otherwise arrange to activate flymake upon save.
 
 This function is meant to be added to `abs-mode-hook'."
   (cond ((file-exists-p buffer-file-name)
-         (flymake-mode-on)
+         (flymake-mode)
          (remove-hook 'after-save-hook 'abs-flymake-mode-on t))
         (t (add-hook 'after-save-hook 'abs-flymake-mode-on nil t))))
 
@@ -464,8 +468,8 @@ This function is meant to be added to `abs-mode-hook'."
       (list
        abs-compiler-program
        (remove nil (cl-list*
-                    (flymake-init-create-temp-buffer-copy
-                     'flymake-create-temp-inplace)
+                    (flymake-proc-init-create-temp-buffer-copy
+                     'flymake-proc-create-temp-inplace)
                     other-files))))))
 
 (add-to-list 'flymake-allowed-file-name-masks '("\\.abs\\'" abs-flymake-init))
@@ -553,12 +557,12 @@ This function is meant to be added to `abs-mode-hook'."
 The user will be shown the compile command in the minibuffer and
 can edit it before compilation starts."
   (let ((compile-command (abs--calculate-compile-command backend)))
-   (call-interactively 'compile)))
+    (call-interactively 'compile)))
 
 (defun abs--compile-model-no-prompt (backend)
   "Compile the current buffer on BACKEND."
   (let ((compile-command (abs--calculate-compile-command backend)))
-   (compile compile-command)))
+    (compile compile-command)))
 
 ;;; Pacify the byte compiler.  This variable is defined in maude-mode, which
 ;;; is loaded via `run-maude'.

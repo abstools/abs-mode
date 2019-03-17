@@ -5,7 +5,7 @@
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.1
-;; Package-Requires: ((emacs "25") abs-mode)
+;; Package-Requires: ((emacs "25") (abs-mode "1"))
 ;; Keywords: literate programming, reproducible research
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -56,40 +56,40 @@
   "ABS-specific header arguments.")
 
 (defun org-babel-execute:abs (body params)
-  "Execute a block of ABS code with org-babel.
+  "Execute abs code in BODY with org-babel parameters PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (let* ((tmp-src-file (org-babel-temp-file "abs-src-" ".abs"))
          (full-body (org-babel-expand-body:abs body params)))
-  (with-temp-file tmp-src-file (insert full-body))
-  (org-babel-eval
-   (format "cd %s ; %s -erlang %s"
-           (file-name-directory tmp-src-file)
-           abs-compiler-program
-           (org-babel-process-file-name tmp-src-file))
-   "")
-  (let ((results
-         (org-babel-eval
-          (format "cd %s ; gen/erl/run"
-                  (file-name-directory tmp-src-file))
-          "")))
-    (when results
-      (setq results (org-trim (org-remove-indentation results)))
-      ;; (org-babel-reassemble-table
-      ;;  (org-babel-result-cond (cdr (assq :result-params params))
-      ;;    (org-babel-read results t)
-      ;;    (let ((tmp-file (org-babel-temp-file "abs-")))
-      ;;      (with-temp-file tmp-file (insert results))
-      ;;      (org-babel-import-elisp-from-file tmp-file)))
-      ;;  (org-babel-pick-name
-      ;;   (cdr (assq :colname-names params)) (cdr (assq :colnames params)))
-      ;;  (org-babel-pick-name
-      ;;   (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))
-      ))))
+    (with-temp-file tmp-src-file (insert full-body))
+    (org-babel-eval
+     (format "cd %s ; %s -erlang %s"
+             (file-name-directory tmp-src-file)
+             abs-compiler-program
+             (org-babel-process-file-name tmp-src-file))
+     "")
+    (let ((results
+           (org-babel-eval
+            (format "cd %s ; gen/erl/run"
+                    (file-name-directory tmp-src-file))
+            "")))
+      (when results
+        (setq results (org-trim (org-remove-indentation results)))
+        ;; (org-babel-reassemble-table
+        ;;  (org-babel-result-cond (cdr (assq :result-params params))
+        ;;    (org-babel-read results t)
+        ;;    (let ((tmp-file (org-babel-temp-file "abs-")))
+        ;;      (with-temp-file tmp-file (insert results))
+        ;;      (org-babel-import-elisp-from-file tmp-file)))
+        ;;  (org-babel-pick-name
+        ;;   (cdr (assq :colname-names params)) (cdr (assq :colnames params)))
+        ;;  (org-babel-pick-name
+        ;;   (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))
+        ))))
 
 (defun org-babel-expand-body:abs (body params)
-  "Expand a block of ABS code with org-babel according to its header arguments."
+  "Expand abs code in BODY with org-babel header parameters PARAMS."
   (let ((vars (org-babel--get-vars params))
-        (colnames (cdr (assq :colname-names params)))
+        ;; (colnames (cdr (assq :colname-names params)))
         (module (or (cdr (assq :module params)) "Org")))
     (mapconcat 'identity
                (list
@@ -110,14 +110,12 @@ This function is called by `org-babel-execute-src-block'."
                "\n")))
 
 (defun org-babel-prep-session:abs (_session _params)
-  "This function does nothing as abs is a compiled language with no
-support for sessions"
-  (error "ABS is a compiled language -- no support for sessions"))
+  "Raise an error since abs has no support for sessions."
+  (error "ABS has no support for sessions"))
 
 (defun org-babel-load-session:abs (_session _body _params)
-  "This function does nothing as abs is a compiled language with no
-support for sessions"
-  (error "ABS is a compiled language -- no support for sessions"))
+  "Raise an error since abs has no support for sessions."
+  (error "ABS has no support for sessions"))
 
 ;; helper functions
 
@@ -138,7 +136,7 @@ FORMAT can be either a format string or a function which is called with VAL."
             (`integerp '("Int" "%d"))
             (`floatp '("Float" "%f"))
             (`stringp '("String" "\"%s\""))
-            (_ (error "unknown type %S" basetype)))))
+            (_ (error "Unknown type %S" basetype)))))
     (cond
      ((integerp val) type) ;; an integer declared in the #+begin_src line
      ((floatp val) type) ;; a numeric declared in the #+begin_src line
@@ -174,10 +172,11 @@ FORMAT can be either a format string or a function which is called with VAL."
       type))))
 
 (defun org-babel-abs-val-to-base-type (val)
-  "Determine the base type of VAL which may be
-`integerp' if all base values are integers
-`floatp' if all base values are either floating points or integers
-`stringp' otherwise."
+  "Determine the base type of VAL.
+The base type may be:
+- `integerp' if all base values are integers;
+- `floatp' if all base values are either floating points or integers;
+- `stringp' otherwise."
   (cond
    ((integerp val) 'integerp)
    ((floatp val) 'floatp)
@@ -196,15 +195,14 @@ FORMAT can be either a format string or a function which is called with VAL."
    (t 'stringp)))
 
 (defun org-babel-abs-var-exports (pair)
-  "Generate export clause for a var defined in the header."
+  "Generate export clause for a var PAIR defined in the header."
   (let ((var (car pair)))
     (when (symbolp var) (setq var (symbol-name var)))
     (setq var (downcase var))
     (concat "export " var ";\n")))
 
 (defun org-babel-abs-var-to-abs (pair)
-  "Convert an elisp val into a string of abs code specifying a var
-of the same value."
+  "Convert an elisp val PAIR into an abs function declaration."
   ;; TODO list support
   (let ((var (car pair))
         (val (cdr pair)))
