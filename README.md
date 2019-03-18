@@ -1,6 +1,6 @@
 [![MELPA](https://melpa.org/packages/abs-mode-badge.svg)](https://melpa.org/#/abs-mode)
 [![MELPA Stable](https://stable.melpa.org/packages/abs-mode-badge.svg)](https://stable.melpa.org/#/abs-mode)
-[![CircleCI](https://circleci.com/gh/abstools/abs-mode/tree/master.svg?style=svg)](https://circleci.com/gh/abstools/abs-mode/tree/master)
+[![CircleCI](https://img.shields.io/circleci/project/abstools/abs-mode.svg)](https://circleci.com/gh/abstools/abs-mode)
 
 # An Emacs major mode for the Abs language
 
