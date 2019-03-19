@@ -770,6 +770,45 @@ The following keys are set:
     (push "gen/erl/absmodel" cov-coverage-file-paths))
   (c-run-mode-hooks 'c-mode-common-hook))
 
+(defun abs-check-installation ()
+  "Display diagnostic information about the abs installation.
+This is useful for bug reports."
+  (interactive)
+  (let ((shell-command-dont-erase-buffer t)
+        (java-program (executable-find "java"))
+        (erl-program (executable-find "erl"))
+        (erlc-program (executable-find "erlc"))
+        (abs-compiler-program-info
+         (cond
+          ((executable-find abs-compiler-program)
+           (concat (executable-find abs-compiler-program) " (found in path)"))
+          (abs-compiler-program
+           (concat abs-compiler-program " (set)"))
+          ("(not set)"))))
+    (with-current-buffer-window
+     "*ABS installation status check*" nil nil
+     (insert (format "abs-compiler-program: %s\n" abs-compiler-program-info))
+     (insert "\n")
+     (insert (format "java: %s\n" (or java-program "(not found)")))
+     (insert (format "erlc: %s\n" (or erlc-program "(not found)")))
+     (insert (format "erl:  %s\n" (or erl-program "(not found)")))
+     (insert "\n")
+     (when abs-compiler-program
+       (insert abs-compiler-program " -V says:\n")
+       (shell-command (concat abs-compiler-program " -V") 4)
+       (goto-char (point-max))
+       (insert "\n"))
+     (when java-program
+       (insert java-program " -version says:\n")
+       (shell-command (concat java-program " -version") 4)
+       (goto-char (point-max))
+       (insert "\n"))
+     (when erl-program
+       (insert erl-program " -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), \"releases\", erlang:system_info(otp_release), \"OTP_VERSION\"])), io:fwrite(Version), halt().' -noshell says:\n")
+       (shell-command (concat erl-program " -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), \"releases\", erlang:system_info(otp_release), \"OTP_VERSION\"])), io:fwrite(Version), halt().' -noshell") 4)
+       (goto-char (point-max))
+       (insert "\n"))
+     (help-mode))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.abs\\'" . abs-mode))
