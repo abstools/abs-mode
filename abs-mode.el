@@ -56,7 +56,8 @@
      #'(lambda (x) (member x '(maude java erlang prolog))))
 
 (defcustom abs-compiler-program "absc"
-  "Path to the Abs compiler."
+  "Path to the Abs compiler.
+This variable is also set by `abs-download-compiler'."
   :type 'file
   :group 'abs)
 (put 'abs-compiler-program 'risky-local-variable t)
@@ -142,6 +143,11 @@ NIL."
                  directory)
   :group 'abs)
 (put 'abs-link-source-path 'safe-local-variable '(lambda (x) (or (null x) (stringp x))))
+
+(defcustom abs-directory (locate-user-emacs-file "abs-mode")
+  "The directory where abs-mode internal files should be kept.
+Specifically, `abs-download-compiler' puts absfrontend.jar
+there.")
 
 (defvar abs-product-name nil
   "Product to be generated when compiling.")
@@ -809,6 +815,33 @@ This is useful for bug reports."
        (goto-char (point-max))
        (insert "\n"))
      (help-mode))))
+
+(defun abs-download-compiler ()
+  "Download the latest released version of the abs compiler.
+This command downloads absfrontend.jar from github, stores it in
+`abs-directory' and sets `abs-compiler-program' to \"java -jar
+<location-of-absfrontend.jar>\"."
+  ;; https://stackoverflow.com/questions/24987542/is-there-a-link-to-github-for-downloading-a-file-in-the-latest-release-of-a-repo/26454035#26454035
+  (interactive)
+  (let* ((api-url "https://api.github.com/repos/abstools/abstools/releases/latest")
+         ;; slowly and deliberately pick apart the json such that I can later
+         ;; reconstruct what’s going on
+         (release-info
+          (with-current-buffer (url-retrieve-synchronously api-url)
+            (json-read)))
+         (assets (cdr (assoc 'assets release-info)))
+         (absfrontend-jar-info
+          (seq-find (lambda (asset)
+                      (equal (cdr (assoc 'name asset)) "absfrontend.jar"))
+                    assets))
+         (url (cdr (assoc 'browser_download_url absfrontend-jar-info)))
+         (jar-name (concat (file-name-as-directory abs-directory)
+                           "absfrontend.jar")))
+    (make-directory (file-name-as-directory abs-directory) t)
+    (url-copy-file url jar-name t)
+    (customize-save-variable 'abs-compiler-program
+                             (concat "java -jar " jar-name)
+                             "Set via `abs-download-compiler'")))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.abs\\'" . abs-mode))
