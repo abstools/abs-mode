@@ -56,9 +56,9 @@
      #'(lambda (x) (member x '(maude java erlang prolog))))
 
 (defcustom abs-compiler-program "absc"
-  "Path to the Abs compiler.
+  "Command to invoke the Abs compiler.
 This variable is also set by `abs-download-compiler'."
-  :type 'file
+  :type 'string
   :group 'abs)
 (put 'abs-compiler-program 'risky-local-variable t)
 
@@ -145,9 +145,12 @@ NIL."
 (put 'abs-link-source-path 'safe-local-variable '(lambda (x) (or (null x) (stringp x))))
 
 (defcustom abs-directory (locate-user-emacs-file "abs-mode")
-  "The directory where abs-mode internal files should be kept.
-Specifically, `abs-download-compiler' puts absfrontend.jar
-there.")
+  "The directory where mode-internal files should be kept.
+Location of absfrontend.jar when installed via
+`abs-download-compiler'."
+  :type 'directory
+  :group 'abs)
+(put 'abs-directory 'risky-local-variable t)
 
 (defvar abs-product-name nil
   "Product to be generated when compiling.")
