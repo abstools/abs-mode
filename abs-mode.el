@@ -701,9 +701,13 @@ A definition can be interface, class, datatype or function."
 ;;; Indentation
 (c-add-style
  "abs" '("java"
+         ;; to fix indentation, use `c-set-offset' then update this list
          (c-offsets-alist
           ;; don't indent a class definition preceded by an annotation
-          (topmost-intro-cont . 0))))
+          (topmost-intro-cont . 0)
+          ;; don’t outdent "case" (in Java it’s a label, for us it’s a
+          ;; statement or expression)
+          (case-label . +))))
 
 ;;; Set up the "Abs" pull-down menu
 (easy-menu-define abs-mode-menu abs-mode-map
