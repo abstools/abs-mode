@@ -104,24 +104,6 @@ Server will not be started if nil."
   :group 'abs)
 (put 'abs-local-port 'safe-local-variable 'integerp)
 
-(defcustom abs-influxdb-enable nil
-  "Enable logging via InfluxDB."
-  :type 'string
-  :group 'abs)
-(put 'abs-influxdb-enable 'safe-local-variable 'stringp)
-
-(defcustom abs-influxdb-url nil
-  "URL to running InfluxDB instance."
-  :type 'string
-  :group 'abs)
-(put 'abs-influxdb-url 'safe-local-variable 'stringp)
-
-(defcustom abs-influxdb-db nil
-  "Database name for running InfluxDB instance."
-  :type 'string
-  :group 'abs)
-(put 'abs-influxdb-db 'safe-local-variable 'stringp)
-
 (defcustom abs-compile-with-coverage-info nil
   "Control whether to generate erlang code with coverage info."
   :type 'boolean
@@ -600,9 +582,6 @@ can edit it before compilation starts."
                     (args (concat
                            (when abs-clock-limit (format " -l %d " abs-clock-limit))
                            (when abs-local-port (format " -p %d " abs-local-port))
-                           (when abs-influxdb-enable (format " -i "))
-                           (when abs-influxdb-url (format " -u %s " abs-influxdb-url))
-                           (when abs-influxdb-db (format " -d %s " abs-influxdb-db))
                            ;; FIXME: reinstate `module' arg
                            ;; once abs--guess-module doesn't
                            ;; pick a module w/o main block
