@@ -185,7 +185,7 @@ Location of absfrontend.jar when installed via
   (eval-when-compile
     (regexp-opt
      '("module" "import" "export" "from"              ; the top levels
-       "data" "type" "def" "interface" "class" "exception"
+       "data" "type" "def" "interface" "class" "trait" "exception"
        "case" "=>" "new" "local"                      ; the functionals
        "extends"                                      ; the interfaces
        "implements"                                   ; the class
