@@ -821,8 +821,9 @@ This command downloads absfrontend.jar from github, stores it in
                       (equal (cdr (assoc 'name asset)) "absfrontend.jar"))
                     assets))
          (url (cdr (assoc 'browser_download_url absfrontend-jar-info)))
-         (jar-name (concat (file-name-as-directory abs-directory)
-                           "absfrontend.jar")))
+         (jar-name (expand-file-name
+                    (concat (file-name-as-directory abs-directory)
+                            "absfrontend.jar"))))
     (make-directory (file-name-as-directory abs-directory) t)
     (url-copy-file url jar-name t)
     (customize-save-variable 'abs-compiler-program
