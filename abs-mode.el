@@ -62,6 +62,23 @@ This variable is also set by `abs-download-compiler'."
   :group 'abs)
 (put 'abs-compiler-program 'risky-local-variable t)
 
+(defcustom abs-output-directory nil
+  "The directory where compiled models are generated.
+If non-NIL, the value of this variable will be passed to
+`abs-compiler-program' via the `-d' command-line switch.  Note
+that a warning prompt will appear when opening a file that tries
+to set this variable to a value above the current directory via
+its file-local variables section.
+
+If this variable is NIL, the erlang backend will create files
+below `gen/erl/’ and the Java backend below `gen/', which is the
+default behavior of the ABS compiler."
+  :type 'directory
+  :group 'abs)
+(put 'abs-output-directory 'safe-local-variable
+     #'(lambda (dir)
+         (not (string-prefix-p ".." (file-relative-name dir)))))
+
 (defcustom abs-java-classpath "absfrontend.jar"
   "The classpath for the Java backend.
 The contents of this variable will be passed to the java
@@ -493,6 +510,21 @@ This function is meant to be added to `abs-mode-hook'."
       filename
     (concat (file-name-directory (buffer-file-name)) filename)))
 
+(defun abs--real-output-directory ()
+  "Return the output directory, suitable as the first arg to CONCAT.
+Try to return the correct value both in case
+`abs-output-directory' has a value and when we let the compiler
+decide."
+  (file-name-as-directory
+   (or abs-output-directory
+       (pcase abs-target-language
+         (`maude ".")
+         ;; to be adjusted if the ABS compiler changes its default output dirs.
+         (`erlang "gen/erl/")
+         (`java "gen/")
+         ;; FIXME Prolog backend can use -fn outfile
+         (`prolog ".")))))
+
 (defun abs--guess-module ()
   "Guess the name of a module."
   (save-excursion
@@ -501,71 +533,84 @@ This function is meant to be added to `abs-mode-hook'."
                             (group (char upper) (* (or (char alnum) "." "_")))))
     (buffer-substring-no-properties (match-beginning 1) (match-end 1))))
 
-(defun abs--calculate-compile-command (backend)
-  "Return the command to compile the current model on BACKEND."
+(defun abs--calculate-compile-command ()
+  "Return the command to compile the current model.
+Expects `abs-target-language' to be bound to the desired
+backend."
   (cond (abs-compile-command)
         ((file-exists-p "Makefile") compile-command)
         (t (concat abs-compiler-program
-                   " --" (symbol-name backend)
+                   " --" (symbol-name abs-target-language)
                    " "
                    ;; FIXME: make it work with filenames with spaces
                    (mapconcat (lambda (s) (concat "\"" s "\""))
                               (abs--input-files) " ")
-                   (when (eql backend 'maude)
+                   (when (eql abs-target-language 'maude)
                      (concat " -o \"" (abs--maude-filename) "\""))
+                   (when abs-output-directory
+                     (concat " -d \"" abs-output-directory "\""))
                    (when abs-product-name
                      (concat " --product " abs-product-name))
-                   (when (and (eql backend 'maude)
+                   (when (and (eql abs-target-language 'maude)
                               (or abs-use-timed-interpreter
                                   (local-variable-p 'abs-clock-limit)))
                      (concat " --timed --limit="
                              (number-to-string (or abs-clock-limit 100))))
-                   (when (and (eql backend 'maude)
+                   (when (and (eql abs-target-language 'maude)
                               (< 0 abs-default-resourcecost))
                      (concat " --defaultcost "
                              (number-to-string abs-default-resourcecost)))
-                   (when (and (eq backend 'erlang) abs-compile-with-coverage-info)
+                   (when (and (eq abs-target-language 'erlang) abs-compile-with-coverage-info)
                      " --debuginfo")
                    ;; this branch must be last since it invokes a second
                    ;; command after `absc'
-                   (when (and (eq backend 'erlang) abs-link-source-path)
-                     (concat " && cd gen/erl/ && ./link_sources " abs-link-source-path))
+                   (when (and (eq abs-target-language 'erlang)
+                              abs-link-source-path)
+                     (concat " && cd \"" (abs--real-output-directory) "\" && ./link_sources " abs-link-source-path))
                    " "))))
 
-(defun abs--needs-compilation (backend)
-  "Return non-nil if current file needs to be (re)compiled on BACKEND."
+(defun abs--needs-compilation ()
+  "Return non-nil if current file needs to be (re)compiled.
+Expects `abs-target-language' to be bound to the desired backend."
   (let* ((abs-output-file
-          (abs--absolutify-filename (pcase backend
-                                      (`maude (abs--maude-filename))
-                                      (`erlang "gen/erl/absmodel/Emakefile")
-                                      (`java "gen/ABS/StdLib/Bool.java")
-                                      ;; FIXME Prolog backend can use -fn outfile
-                                      (`prolog "abs.pl"))))
+          (abs--absolutify-filename
+           (pcase abs-target-language
+             (`maude (abs--maude-filename))
+             (`erlang (concat (abs--real-output-directory) "absmodel/Emakefile"))
+             (`java (concat (abs--real-output-directory) "ABS/StdLib/Bool.java"))
+             ;; KLUDGE: Prolog backend can use -fn outfile, so this might be
+             ;; wrong.  On the other hand, the output of the prolog backend
+             ;; cannot be run anyway, so it doesn’t currently matter.
+             (`prolog "abs.pl"))))
          (abs-modtime (nth 5 (file-attributes (buffer-file-name))))
          (output-modtime (nth 5 (file-attributes abs-output-file))))
     (or (not output-modtime)
         (abs--file-date-< output-modtime abs-modtime)
         (buffer-modified-p))))
 
-(defun abs--compile-model (backend)
-  "Compile the current buffer on BACKEND, showing the command.
-The user will be shown the compile command in the minibuffer and
-can edit it before compilation starts."
-  (let ((compile-command (abs--calculate-compile-command backend)))
+(defun abs--compile-model ()
+  "Compile the current buffer after prompting for a compile command.
+The user will be shown a hopefull-correct compile command in the
+minibuffer and can edit it before compilation starts.  Expects
+`abs-target-language' to be bound to the desired backend."
+  (let ((compile-command (abs--calculate-compile-command)))
     (call-interactively 'compile)))
 
-(defun abs--compile-model-no-prompt (backend)
-  "Compile the current buffer on BACKEND."
-  (let ((compile-command (abs--calculate-compile-command backend)))
-    (compile compile-command)))
+(defun abs--compile-model-no-prompt ()
+  "Compile the current buffer.
+Expects `abs-target-language' to be bound to the desired
+backend."
+  (compile (abs--calculate-compile-command)))
 
 ;;; Pacify the byte compiler.  This variable is defined in maude-mode, which
 ;;; is loaded via `run-maude'.
 (defvar inferior-maude-buffer nil)
 
-(defun abs--run-model (backend)
-  "Start the model running on language BACKEND."
-  (pcase backend
+(defun abs--run-model ()
+  "Start the model.
+Expects `abs-target-language' to be bound to the desired
+backend."
+  (pcase abs-target-language
     (`maude (save-excursion (run-maude))
             (comint-send-string inferior-maude-buffer
                                 (concat "in \""
@@ -577,8 +622,10 @@ can edit it before compilation starts."
               (goto-char (point-max))
               (insert "frew start .")
               (comint-send-input)))
-    (`erlang (let* ((dirname (file-name-directory (buffer-file-name)))
-                    (script (car (directory-files-recursively dirname "^start_console$" t)))
+    (`erlang (let* ((script (concat (abs--real-output-directory)
+                                    (if (eq window-system 'w32)
+                                        "run.bat"
+                                      "start_console")))
                     (args (concat
                            (when abs-clock-limit (format " -l %d " abs-clock-limit))
                            (when abs-local-port (format " -p %d " abs-local-port))
@@ -596,9 +643,7 @@ can edit it before compilation starts."
                    ;; instead
                    (let ((buffer (get-buffer-create "*erlang*")))
                      (pop-to-buffer buffer)
-                     ;; this works since we don't support `absc -d',
-                     ;; so we always have `gen/erl/run.bat'
-                     (shell-command (concat "gen\\erl\\run.bat " args) buffer))
+                     (shell-command (expand-file-name erl-command) buffer))
                  (inferior-erlang erl-command))))
     (`java (let* ((module (abs--guess-module))
                   (java-buffer (get-buffer-create (concat "*abs java " module "*")))
@@ -607,7 +652,7 @@ can edit it before compilation starts."
                                    " " module ".Main")))
              (pop-to-buffer java-buffer)
              (shell-command command java-buffer)))
-    (_ (error "Don't know how to run with target %s" backend))))
+    (_ (error "Don't know how to run with target %s" abs-target-language))))
 
 (defun abs-next-action (flag)
   "Compile or execute the buffer.
@@ -630,16 +675,18 @@ include the file absfrontend.jar.
 To execute on the Erlang backend, make sure that Erlang and the
 Erlang Emacs mode are installed.
 
-Argument FLAG will prompt for language backend to use if 1."
+Argument FLAG will prompt for language backend to use if 1, i.e.,
+if the command was invoked with `C-u'."
   (interactive "p")
-  (let ((backend (if (= 1 flag)
-                     abs-target-language
-                   (intern (completing-read "Target language: "
-                                            '("maude" "erlang" "java")
-                                            nil t nil nil "maude")))))
-    (if (abs--needs-compilation backend)
-        (abs--compile-model backend)
-      (abs--run-model backend))))
+  (let ((abs-target-language
+         (if (= 1 flag)
+             abs-target-language
+           (intern (completing-read "Target language: "
+                                    '("erlang" "java" "maude")
+                                    nil t nil nil "erlang")))))
+    (if (abs--needs-compilation)
+        (abs--compile-model)
+      (abs--run-model))))
 
 ;;; Movement
 
