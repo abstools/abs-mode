@@ -21,7 +21,11 @@ It is recommended to use the MELPA package archive to install abs-mode.  Add the
 
 Restart emacs, then install abs-mode via `M-x package-install RET
 abs-mode RET`, or run `M-x list-packages`, select abs-mode from the
-list (press `i` on its line) and install (press `x`)..
+list (press `i` on its line) and install (press `x`).
+
+If the `absc` command is not in the path, set the variable
+`abs-compiler-program` to the full path of `absc`, e.g. via `M-x
+customize-variable RET abs-compiler-program RET`.
 
 ## Installation from source
 
