@@ -625,7 +625,7 @@ backend."
     (`erlang (let* ((script (concat (abs--real-output-directory)
                                     (if (eq window-system 'w32)
                                         "run.bat"
-                                      "start_console")))
+                                      "run")))
                     (args (concat
                            (when abs-clock-limit (format " -l %d " abs-clock-limit))
                            (when abs-local-port (format " -p %d " abs-local-port))
