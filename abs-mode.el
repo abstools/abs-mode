@@ -269,6 +269,7 @@ Location of absfrontend.jar when installed via
 (modify-syntax-entry ?>   "."     abs-mode-syntax-table)
 (modify-syntax-entry ?&   "."     abs-mode-syntax-table)
 (modify-syntax-entry ?|   "."     abs-mode-syntax-table)
+(modify-syntax-entry ?$   "."     abs-mode-syntax-table)
 (modify-syntax-entry ?/   ". 124" abs-mode-syntax-table)
 (modify-syntax-entry ?*   ". 23b" abs-mode-syntax-table)
 (modify-syntax-entry ?\n  ">"     abs-mode-syntax-table)
