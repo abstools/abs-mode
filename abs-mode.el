@@ -35,7 +35,7 @@
 (require 'cl-lib)
 (require 'cc-mode)
 (require 'cc-langs)
-(require 'erlang-start)
+(autoload 'inferior-erlang "erlang-autoloads" nil t)
 (autoload 'run-maude "maude-mode" nil t)
 
 ;;; Code:
