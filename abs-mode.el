@@ -5,7 +5,7 @@
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.5
-;; Package-Requires: ((emacs "25") (erlang "0") (maude-mode "0") (flymake "0.3"))
+;; Package-Requires: ((emacs "25.3") (erlang "0") (maude-mode "0") (flymake "0.3"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -65,7 +65,7 @@ This variable is also set by `abs-download-compiler'."
 (defcustom abs-output-directory nil
   "The directory where compiled models are generated.
 If non-NIL, the value of this variable will be passed to
-`abs-compiler-program' via the `-d' command-line switch.  Note
+`abs-compiler-program' via the `-d' command line switch.  Note
 that a warning prompt will appear when opening a file that tries
 to set this variable to a value above the current directory via
 its file-local variables section.
@@ -605,7 +605,7 @@ backend."
 
 ;;; Pacify the byte compiler.  This variable is defined in maude-mode, which
 ;;; is loaded via `run-maude'.
-(defvar inferior-maude-buffer nil)
+(defvar inferior-maude-buffer)
 
 (defun abs--run-model ()
   "Start the model.
