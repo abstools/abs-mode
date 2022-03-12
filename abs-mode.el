@@ -1,11 +1,11 @@
 ;;; abs-mode.el --- Major mode for the modeling language Abs -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018  Rudolf Schlatte
+;; Copyright (C) 2010-2022  Rudolf Schlatte
 
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.5
-;; Package-Requires: ((emacs "25.3") (erlang "0") (maude-mode "0") (flymake "0.3"))
+;; Package-Requires: ((emacs "25.3") (erlang "2.8") (maude-mode "0.3") (flymake "1.0"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -826,29 +826,29 @@ This is useful for bug reports."
            (concat abs-compiler-program " (set)"))
           ("(not set)"))))
     (with-current-buffer-window
-     "*ABS installation status check*" nil nil
-     (insert (format "abs-compiler-program: %s\n" abs-compiler-program-info))
-     (insert "\n")
-     (insert (format "java: %s\n" (or java-program "(not found)")))
-     (insert (format "erlc: %s\n" (or erlc-program "(not found)")))
-     (insert (format "erl:  %s\n" (or erl-program "(not found)")))
-     (insert "\n")
-     (when abs-compiler-program
-       (insert abs-compiler-program " -V says:\n")
-       (shell-command (concat abs-compiler-program " -V") 4)
-       (goto-char (point-max))
-       (insert "\n"))
-     (when java-program
-       (insert java-program " -version says:\n")
-       (shell-command (concat java-program " -version") 4)
-       (goto-char (point-max))
-       (insert "\n"))
-     (when erl-program
-       (insert erl-program " -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), \"releases\", erlang:system_info(otp_release), \"OTP_VERSION\"])), io:fwrite(Version), halt().' -noshell says:\n")
-       (shell-command (concat erl-program " -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), \"releases\", erlang:system_info(otp_release), \"OTP_VERSION\"])), io:fwrite(Version), halt().' -noshell") 4)
-       (goto-char (point-max))
-       (insert "\n"))
-     (help-mode))))
+        "*ABS installation status check*" nil nil
+      (insert (format "abs-compiler-program: %s\n" abs-compiler-program-info))
+      (insert "\n")
+      (insert (format "java: %s\n" (or java-program "(not found)")))
+      (insert (format "erlc: %s\n" (or erlc-program "(not found)")))
+      (insert (format "erl:  %s\n" (or erl-program "(not found)")))
+      (insert "\n")
+      (when abs-compiler-program
+        (insert abs-compiler-program " -V says:\n")
+        (shell-command (concat abs-compiler-program " -V") 4)
+        (goto-char (point-max))
+        (insert "\n"))
+      (when java-program
+        (insert java-program " -version says:\n")
+        (shell-command (concat java-program " -version") 4)
+        (goto-char (point-max))
+        (insert "\n"))
+      (when erl-program
+        (insert erl-program " -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), \"releases\", erlang:system_info(otp_release), \"OTP_VERSION\"])), io:fwrite(Version), halt().' -noshell says:\n")
+        (shell-command (concat erl-program " -eval '{ok, Version} = file:read_file(filename:join([code:root_dir(), \"releases\", erlang:system_info(otp_release), \"OTP_VERSION\"])), io:fwrite(Version), halt().' -noshell") 4)
+        (goto-char (point-max))
+        (insert "\n"))
+      (help-mode))))
 
 (defun abs-download-compiler ()
   "Download the latest released version of the abs compiler.

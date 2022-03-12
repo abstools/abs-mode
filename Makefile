@@ -1,7 +1,8 @@
 export EMACS ?= emacs
 export BATCH = --batch -q -l .emacs/init.el
 
-ELL = .emacs/elpa/elisp-lint-20180224.2042/elisp-lint.el
+# FIXME: do not hardcode the path to elisp-lint.el
+ELL = .emacs/elpa/elisp-lint-20211018.212/elisp-lint.el
 # ELS = $(filter-out abs-mode-autoloads.el,$(wildcard *.el))
 ELS = abs-mode.el
 OBJECTS = $(ELS:.el=.elc)
