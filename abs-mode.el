@@ -5,7 +5,7 @@
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.5
-;; Package-Requires: ((emacs "25.3") (erlang "2.8") (maude-mode "0.3") (flymake "1.0"))
+;; Package-Requires: ((emacs "25.3") (erlang "2.8") (maude-mode "0.3") (flymake-proc "1.0"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -472,20 +472,16 @@ This function is meant to be added to `abs-mode-hook'."
   "Run flymake in current buffer."
   (when abs-compiler-program
     (let* ((filename (file-name-nondirectory (buffer-file-name)))
+           ;; TODO: use `abs--input-files' here, but take care with relative
+           ;; vs absolute filenames
            (other-files (delete filename (abs--calculate-input-files)))
            (temp-filename
-            (if (fboundp 'flymake-proc-init-create-temp-buffer-copy)
-                (flymake-proc-init-create-temp-buffer-copy
-                 'flymake-proc-create-temp-inplace)
-              (with-no-warnings
-                ;; these functions are declared obsolete on emacs>25
-                (flymake-init-create-temp-buffer-copy
-                 'flymake-create-temp-inplace)))))
+            (flymake-proc-init-create-temp-buffer-copy 'flymake-proc-create-temp-inplace)))
       (list
        abs-compiler-program
        (remove nil (cl-list* temp-filename other-files))))))
 
-(add-to-list 'flymake-allowed-file-name-masks '("\\.abs\\'" abs-flymake-init))
+(add-to-list 'flymake-proc-allowed-file-name-masks '("\\.abs\\'" abs-flymake-init))
 
 ;;; Compilation support
 (defun abs--file-date-< (d1 d2)
@@ -603,9 +599,9 @@ Expects `abs-target-language' to be bound to the desired
 backend."
   (compile (abs--calculate-compile-command)))
 
-;;; Pacify the byte compiler.  This variable is defined in maude-mode, which
-;;; is loaded via `run-maude'.
-(defvar inferior-maude-buffer)
+;;; Pacify the byte compiler.
+(defvar inferior-maude-buffer)          ; defined in `maude-mode'
+(defvar cov-coverage-file-paths)        ; defined in `cov'
 
 (defun abs--run-model ()
   "Start the model.
