@@ -31,7 +31,7 @@
 (require 'custom)
 (require 'easymenu)
 (eval-when-compile (require 'rx))
-(require 'flymake)
+(require 'flymake-proc)
 (require 'cl-lib)
 (require 'cc-mode)
 (require 'cc-langs)
