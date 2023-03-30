@@ -35,7 +35,8 @@
 (require 'cl-lib)
 (require 'cc-mode)
 (require 'cc-langs)
-(require 'yasnippet nil t)
+(require 'yasnippet nil t)              ; ignore if not installed
+(require 'speedbar)
 (autoload 'inferior-erlang "erlang-autoloads" nil t)
 (autoload 'run-maude "maude-mode" nil t)
 
