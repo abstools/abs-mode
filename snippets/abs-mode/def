@@ -1,0 +1,5 @@
+# -*- mode: snippet; -*-
+# name: def
+# key: def
+# --
+def ${1:ReturnType} ${2:function_name}${3:<${4:A}>}(${5:parameter}) = ${0:expression};

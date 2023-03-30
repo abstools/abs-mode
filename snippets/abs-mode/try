@@ -1,0 +1,11 @@
+# -*- mode: snippet; -*-
+# name: try
+# key: try
+# --
+try {
+    ${1:statement}
+} catch {
+    ${2:exception} => ${3:statement}
+}${4: finally {
+    $0
+}}

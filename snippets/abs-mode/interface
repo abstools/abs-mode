@@ -1,0 +1,8 @@
+# -*- mode: snippet; -*-
+# name: interface
+# key: interface
+# --
+interface ${1:InterfaceName} ${2:extends $3 }{
+    // Method declarations
+    $0
+}

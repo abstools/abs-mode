@@ -1,0 +1,8 @@
+# -*- mode: snippet; -*-
+# name: case
+# key: case
+# --
+case ${1:expression} in {
+    ${2:pattern} => ${3:expression}
+  | ${4:pattern} => ${0:expression}
+}

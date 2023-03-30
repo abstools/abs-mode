@@ -1,0 +1,8 @@
+# -*- mode: snippet; -*-
+# name: switch
+# key: switch
+# --
+switch (${1:expression}) {
+    ${2:pattern} => ${3:statement}
+    ${4:pattern} => ${0:statement}
+}

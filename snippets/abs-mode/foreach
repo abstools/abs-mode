@@ -1,0 +1,7 @@
+# -*- mode: snippet; -*-
+# name: foreach
+# key: foreach
+# --
+foreach (${1:value}${2:, ${3:index}} in ${4:list}) {
+    `yas-selected-text`$0
+}

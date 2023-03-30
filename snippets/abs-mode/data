@@ -1,0 +1,5 @@
+# -*- mode: snippet; -*-
+# name: data
+# key: data
+# --
+data ${1:DataTypeName} = $1${2:(${3:Parameter})};

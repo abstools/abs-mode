@@ -1,0 +1,6 @@
+# -*- mode: snippet; -*-
+# name: let
+# key: let
+# --
+let (${1:type} ${2:variable}) = ${3:expression}${4:, (${5:type} ${6:variable}) = ${7:expression}} in
+    ${0:expression}

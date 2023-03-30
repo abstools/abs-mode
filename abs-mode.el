@@ -5,7 +5,7 @@
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.5
-;; Package-Requires: ((emacs "26.1") (erlang "2.8") (maude-mode "0.3") (flymake "1.0"))
+;; Package-Requires: ((emacs "26.1") (erlang "2.8") (maude-mode "0.3") (flymake "1.0") (yasnippet "0.14.0"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@
 (require 'cl-lib)
 (require 'cc-mode)
 (require 'cc-langs)
+(require 'yasnippet nil t)
 (autoload 'inferior-erlang "erlang-autoloads" nil t)
 (autoload 'run-maude "maude-mode" nil t)
 
@@ -99,10 +100,10 @@ used regardless of the value of `abs-use-timed-interpreter'."
   :group 'abs)
 (put 'abs-use-timed-interpreter 'safe-local-variable 'booleanp)
 
-(defcustom abs-mode-hook (list 'imenu-add-menubar-index 'abs-flymake-mode-on)
+(defcustom abs-mode-hook (list 'imenu-add-menubar-index 'abs-flymake-mode-on 'abs-maybe-yasnippet-mode-on)
   "Hook for customizing `abs-mode'."
   :type 'hook
-  :options (list 'imenu-add-menubar-index 'abs-flymake-mode-on)
+  :options (list 'imenu-add-menubar-index 'abs-flymake-mode-on 'abs-maybe-yasnippet-mode-on)
   :group 'abs)
 
 (defcustom abs-clock-limit nil
@@ -256,6 +257,26 @@ Location of absfrontend.jar when installed via
   "Abbrev table for `abs-mode'.")
 (c-define-abbrev-table 'abs-mode-abbrev-table
   '(("else" "else" c-electric-continued-statement 0)))
+
+;;; Snippets
+(defvar abs--yas-snippets-dir
+  (expand-file-name
+   "snippets"
+   (file-name-directory
+    (cond
+     (load-in-progress
+      load-file-name)
+     ((and (boundp 'byte-compile-current-file)
+           byte-compile-current-file)
+      byte-compile-current-file)
+     (t
+      (buffer-file-name)))))
+  "Directory containing yasnippet snippets for ABS.")
+
+(defun abs-maybe-yasnippet-mode-on ()
+  "Activate yasnippet-minor-mode in current buffer if available."
+  (when (featurep 'yasnippet)
+    (yas-minor-mode-on)))
 
 ;;; Abs syntax table
 (defvar abs-mode-syntax-table (copy-syntax-table)
@@ -804,7 +825,15 @@ The following keys are set:
   (when (featurep 'cov)
     (make-local-variable 'cov-coverage-file-paths)
     (push "gen/erl/absmodel" cov-coverage-file-paths))
-  (c-run-mode-hooks 'c-mode-common-hook))
+  (c-run-mode-hooks 'c-mode-common-hook)
+  ;; Snippet support
+  (when (featurep 'yasnippet)
+    ;; If yasnippet is not available, fail gracefully
+    (unless (member abs--yas-snippets-dir yas-snippet-dirs)
+      (add-to-list 'yas-snippet-dirs abs--yas-snippets-dir t)
+      ;; we use an internal function here, but the `yasnippet-snippets' package
+      ;; does the same; let's assume this is a de facto public API for now.
+      (yas--load-snippet-dirs))))
 
 (defun abs-check-installation ()
   "Display diagnostic information about the abs installation.

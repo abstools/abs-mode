@@ -1,0 +1,7 @@
+# -*- mode: snippet; -*-
+# name: module
+# key: module
+# --
+module ${1:ModuleName};
+${2:import * from OtherModule;}
+${3:export Name, OtherName;}

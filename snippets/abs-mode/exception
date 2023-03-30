@@ -1,0 +1,5 @@
+# -*- mode: snippet; -*-
+# name: exception
+# key: exception
+# --
+exception ${1:ExceptionName}${2:(${3:Type}${4: ${5:name}})};

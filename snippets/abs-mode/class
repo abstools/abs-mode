@@ -1,0 +1,17 @@
+# -*- mode: snippet; -*-
+# name: class
+# key: class
+# --
+class ${1:ClassName} ${2:implements $3 }{
+    // Field definitions
+    $4
+    // Init block
+    {
+        $5
+    }
+    ${6:recover {
+        Exception => skip;
+    }}
+    // Methods
+    $0
+}
