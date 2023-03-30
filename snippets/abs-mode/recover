@@ -1,0 +1,9 @@
+# -*- mode: snippet; -*-
+# name: recover
+# key: recover
+# --
+recover {
+    ${1:Exception} => {
+      ${0:skip;}
+    }
+}
