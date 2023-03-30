@@ -162,33 +162,33 @@ Location of absfrontend.jar when installed via
   :group 'abs)
 
 (defface abs-keyword-face '((default (:inherit font-lock-keyword-face)))
-  "Face for Abs keywords"
+  "Face for Abs keywords."
   :group 'abs-faces)
 (defvar abs-keyword-face 'abs-keyword-face
   "Face for Abs keywords.")
 
 (defface abs-constant-face '((default (:inherit font-lock-constant-face)))
-  "Face for Abs constants"
+  "Face for Abs constants."
   :group 'abs-faces)
 (defvar abs-constant-face 'abs-constant-face
   "Face for Abs constants.")
 
 (defface abs-function-name-face
   '((default (:inherit font-lock-function-name-face)))
-  "Face for Abs function-names"
+  "Face for Abs function-names."
   :group 'abs-faces)
 (defvar abs-function-name-face 'abs-function-name-face
   "Face for Abs function-names.")
 
 (defface abs-type-face '((default (:inherit font-lock-type-face)))
-  "Face for Abs types"
+  "Face for Abs types."
   :group 'abs-faces)
 (defvar abs-type-face 'abs-type-face
   "Face for Abs types.")
 
 (defface abs-variable-name-face
   '((default (:inherit font-lock-variable-name-face)))
-  "Face for Abs variables"
+  "Face for Abs variables."
   :group 'abs-faces)
 (defvar abs-variable-name-face 'abs-variable-name-face
   "Face for Abs variables.")
@@ -816,8 +816,6 @@ The following keys are set:
   ;; imenu
   (setq imenu-generic-expression abs-imenu-generic-expression)
   (setq imenu-syntax-alist abs-imenu-syntax-alist)
-  ;; Menu
-  (easy-menu-add abs-mode-menu abs-mode-map)
   ;; speedbar support
   (when (fboundp 'speedbar-add-supported-extension)
     (speedbar-add-supported-extension ".abs"))
