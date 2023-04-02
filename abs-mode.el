@@ -467,18 +467,12 @@ value.")
                       (or (not (boundp 'compilation-read-command))
                           compilation-read-command))))
 
-;;; Put the regular expression for finding error messages here.
-;;;
-(defconst abs-error-regexp
-  "^[^\0-@]+ \"\\(^\"\n]+\\)\", [^\0-@]+ \\([0-9]+\\)[-,:]\\([0-9]+\\)[-,:]\\([Ww]arning\\)?"
-  "Regular expression matching the error messages produced by the abs compiler.")
-
-(add-to-list 'compilation-error-regexp-alist 'abs t)
-
-(add-to-list 'compilation-error-regexp-alist-alist
-             (list 'abs abs-error-regexp 1 2 3 '(4)))
-
 ;;; flymake support
+
+;; By happy accident, an entry in `compilation-error-regexp-alist-alist'
+;; already matches our error message format, including the difference between
+;; errors and warnings, so we don't have to customize anything for
+;; compilation-mode or flymake.
 (defun abs-flymake-mode-on ()
   "Activate flymake in current buffer if possible.
 Activate flymake if a file exists for the current buffer,
@@ -503,7 +497,9 @@ This function is meant to be added to `abs-mode-hook'."
        abs-compiler-program
        (remove nil (cl-list* temp-filename other-files))))))
 
-(add-to-list 'flymake-proc-allowed-file-name-masks '("\\.abs\\'" abs-flymake-init))
+(add-to-list 'flymake-proc-allowed-file-name-masks
+             '("\\.abs\\'" abs-flymake-init flymake-proc-simple-cleanup flymake-proc-get-real-file-name))
+
 
 ;;; Compilation support
 (defun abs--file-date-< (d1 d2)
