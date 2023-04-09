@@ -14,8 +14,7 @@ It is recommended to use the MELPA package archive to install abs-mode.  Add the
 
 ```elisp
 (require 'package)
-(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-                         ("melpa" . "https://melpa.org/packages/")))
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (package-initialize)
 ```
 
@@ -38,10 +37,14 @@ This uses John Wiegley's excellent `use-package` package
 
 ## Common problems (and their solutions)
 
+In general, see the output of `M-x abs-check-installation`.  This command
+prints out the location and version of all programs needed to compile and run
+abs models.
+
 If the `absc` command is not in the path, compiling an ABS model within Emacs
 will fail.  Set the variable `abs-compiler-program` to the full path of
 `absc`, e.g. via `M-x customize-variable RET abs-compiler-program RET`.  (In
-case the variable is not found, do `M-x load-library RET abs RET` first.)
+case the variable is not found, do `M-x load-library RET abs-mode RET` first.)
 
 In case of error messages about programs not found when trying to compile an
 ABS program inside Emacs, especially on Mac OS, installing the
