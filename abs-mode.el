@@ -4,7 +4,7 @@
 
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
-;; Version: 1.6
+;; Version: 1.7
 ;; Package-Requires: ((emacs "26.1") (erlang "2.8") (maude-mode "0.3") (flymake "1.0") (yasnippet "0.14.0"))
 ;; Keywords: languages
 
@@ -431,7 +431,14 @@ Defaults to the buffer filename with a \".maude\" extension if
 in `abs-input-files' with a \".maude\" extension otherwise.
 
 Add a file-local setting to override the default value.")
-(put 'abs-maude-output-file 'safe-local-variable 'stringp)
+
+(defvar abs-java-output-jar-file nil
+  "The jar file that should be created by the Java backend.
+When nil, no jar file will be created.  Regardless of this
+setting, the Java backend will generate .java and .class files
+below `gen/'.
+
+Add a file-local setting to override the default value.")
 
 (defvar abs-input-files nil
   "List of Abs files to be compiled by \\[abs-next-action].
@@ -562,6 +569,8 @@ backend."
                               (abs--input-files) " ")
                    (when (eql abs-target-language 'maude)
                      (concat " -o \"" (abs--maude-filename) "\""))
+                   (when (and abs-java-output-jar-file (eql abs-target-language 'java))
+                     (concat " -o \"" abs-java-output-jar-file "\""))
                    (when abs-output-directory
                      (concat " -d \"" abs-output-directory "\""))
                    (when abs-product-name
