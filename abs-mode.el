@@ -670,12 +670,15 @@ backend."
                      (shell-command (expand-file-name erl-command) buffer))
                  (inferior-erlang erl-command))))
     (`java (let* ((module (abs--guess-module))
-                  (java-buffer (get-buffer-create (concat "*abs java " module "*")))
+                  (buffer-name (concat "*abs java " module "*"))
                   (command (concat "java -cp gen:"
                                    (expand-file-name abs-java-classpath)
                                    " " module ".Main")))
-             (pop-to-buffer java-buffer)
-             (shell-command command java-buffer)))
+             (when (get-buffer buffer-name)
+               (kill-buffer (get-buffer buffer-name)))
+             (let ((buffer (get-buffer-create buffer-name)))
+               (pop-to-buffer buffer)
+               (shell-command command buffer))))
     (_ (error "Don't know how to run with target %s" abs-target-language))))
 
 (defun abs-next-action (flag)
