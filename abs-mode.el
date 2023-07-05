@@ -673,7 +673,7 @@ backend."
                   (buffer-name (concat "*abs java " module "*"))
                   (command (concat "java -cp gen:"
                                    (expand-file-name abs-java-classpath)
-                                   " " module ".Main")))
+                                   " " module ".Main &")))
              (when (get-buffer buffer-name)
                (kill-buffer (get-buffer buffer-name)))
              (let ((buffer (get-buffer-create buffer-name)))
