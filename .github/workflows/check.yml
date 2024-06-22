@@ -18,7 +18,9 @@ jobs:
           - 27.2
           - 28.1
           - 28.2
-          - snapshot
+          - 29.1
+          - 29.2
+          - 29.3
     steps:
     - uses: actions/checkout@v2
     - uses: purcell/setup-emacs@master
