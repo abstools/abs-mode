@@ -79,7 +79,7 @@ default behavior of the ABS compiler."
   :group 'abs)
 (put 'abs-output-directory 'safe-local-variable
      #'(lambda (dir)
-         (not (string-prefix-p ".." (file-relative-name dir)))))
+         (string-prefix-p default-directory (expand-file-name (file-name-as-directory dir)))))
 
 (defcustom abs-java-classpath "absfrontend.jar"
   "The classpath for the Java backend.
@@ -430,7 +430,11 @@ Defaults to the buffer filename with a \".maude\" extension if
 `abs-input-files' is unset, or to the name of the first element
 in `abs-input-files' with a \".maude\" extension otherwise.
 
-Add a file-local setting to override the default value.")
+Add a file-local setting to override the default value.  Values
+that name a file below the current directory are considered safe,
+values outside the current directory have to be confirmed.")
+(put 'abs-maude-output-file 'safe-local-variable
+     #'(lambda (file) (string-prefix-p default-directory (file-name-directory (expand-file-name file)))))
 
 (defvar abs-java-output-jar-file nil
   "The jar file that should be created by the Java backend.
@@ -438,7 +442,11 @@ When nil, no jar file will be created.  Regardless of this
 setting, the Java backend will generate .java and .class files
 below `gen/'.
 
-Add a file-local setting to override the default value.")
+Add a file-local setting to override the default value.  Values
+that name a file below the current directory are considered safe,
+values outside the current directory have to be confirmed.")
+(put 'abs-java-output-jar-file 'safe-local-variable
+     #'(lambda (file) (string-prefix-p default-directory (file-name-directory (expand-file-name file)))))
 
 (defvar abs-input-files nil
   "List of Abs files to be compiled by \\[abs-next-action].
