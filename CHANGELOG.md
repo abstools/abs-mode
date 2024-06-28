@@ -9,9 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- The variable `abs-java-output-jar-file`, when non-NIL, will cause the Java backend to generate a standalone jar for the model in addition to compiling it into class files as before.  File-local values for `abs-java-output-jar-file` are considered safe if they name a file below the current directory, other values will result in Emacs querying the user upon opening the file.
-
 ### Fixed
+
+### Changed
+
+### Removed
+
+## [1.7] - 2024-06-28
+
+### Added
+
+- The variable `abs-java-output-jar-file`, when non-NIL, will cause the Java backend to generate a standalone jar for the model in addition to compiling it into class files as before.  File-local values for `abs-java-output-jar-file` are considered safe if they name a file below the current directory, other values will result in Emacs querying the user upon opening the file.
 
 ### Changed
 
@@ -69,7 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release
 
-[Unreleased]: https://github.com/abstools/abs-mode/compare/v1.6...HEAD
+[Unreleased]: https://github.com/abstools/abs-mode/compare/v1.7...HEAD
+[1.7]: https://github.com/abstools/abs-mode/compare/v1.6...v1.7
 [1.6]: https://github.com/abstools/abs-mode/compare/v1.5...v1.6
 [1.5]: https://github.com/abstools/abs-mode/compare/v1.4...v1.5
 [1.4]: https://github.com/abstools/abs-mode/compare/v1.3...v1.4
