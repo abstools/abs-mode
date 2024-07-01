@@ -336,6 +336,11 @@ Location of absfrontend.jar when installed via
      1))
   "Imenu expression for `abs-mode'.  See `imenu-generic-expression'.")
 
+;; Minimal outline (folding) support
+(defvar abs--outline-regexp
+  (rx bol (or "delta" "def" "data" "type" "exception" "class" "interface" "module")))
+(defvar abs--outline-level (lambda () (1+ (/ (current-indentation) abs-indent))))
+
 ;;; Minimal auto-insert mode support
 (define-auto-insert 'abs-mode '("Module name: " "module " str ";" ?\n ?\n))
 
@@ -833,6 +838,10 @@ The following keys are set:
   ;; imenu
   (setq imenu-generic-expression abs-imenu-generic-expression)
   (setq imenu-syntax-alist abs-imenu-syntax-alist)
+  ;; outline (code folding)
+  (setq-local outline-regexp abs--outline-regexp)
+  (setq-local outline-level abs--outline-level)
+  (outline-minor-mode)
   ;; speedbar support
   (when (fboundp 'speedbar-add-supported-extension)
     (speedbar-add-supported-extension ".abs"))
