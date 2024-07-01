@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-Enable code folding via `outline-minor-mode`.
+- It is now possible to “fold” (collapse) code.  This is implemented via the built-in Emacs `outline-minor-mode`.
 
 ### Fixed
 
 ### Changed
+
+- The variable `abs-target-language` has been obsoleted; use `abs-backend` instead.
 
 ### Removed
 

@@ -47,15 +47,16 @@
   "Major mode for editing files in the programming / modeling language Abs."
   :group 'languages)
 
-(defcustom abs-target-language 'erlang
-  "The default target language for code generation."
-  :type '(radio (const maude)
-                (const java)
+(define-obsolete-variable-alias 'abs-target-language 'abs-backend "v1.8")
+(defcustom abs-backend 'erlang
+  "The default backend for code generation."
+  :type '(radio (const java)
                 (const erlang)
+                (const maude)
                 (const prolog))
   :group 'abs)
-(put 'abs-target-language 'safe-local-variable
-     #'(lambda (x) (member x '(maude java erlang prolog))))
+(put 'abs-backend 'safe-local-variable
+     #'(lambda (x) (member x '(java erlang maude prolog))))
 
 (defcustom abs-compiler-program "absc"
   "Command to invoke the Abs compiler.
@@ -552,7 +553,7 @@ Try to return the correct value both in case
 decide."
   (file-name-as-directory
    (or abs-output-directory
-       (pcase abs-target-language
+       (pcase abs-backend
          (`maude ".")
          ;; to be adjusted if the ABS compiler changes its default output dirs.
          (`erlang "gen/erl/")
@@ -570,48 +571,47 @@ decide."
 
 (defun abs--calculate-compile-command ()
   "Return the command to compile the current model.
-Expects `abs-target-language' to be bound to the desired
-backend."
+Expects `abs-backend' to be bound to the desired backend."
   (cond (abs-compile-command)
         ((file-exists-p "Makefile") compile-command)
         (t (concat abs-compiler-program
-                   " --" (symbol-name abs-target-language)
+                   " --" (symbol-name abs-backend)
                    " "
                    ;; FIXME: make it work with filenames with spaces
                    (mapconcat (lambda (s) (concat "\"" s "\""))
                               (abs--input-files) " ")
-                   (when (eql abs-target-language 'maude)
+                   (when (eql abs-backend 'maude)
                      (concat " -o \"" (abs--maude-filename) "\""))
-                   (when (and abs-java-output-jar-file (eql abs-target-language 'java))
+                   (when (and abs-java-output-jar-file (eql abs-backend 'java))
                      (concat " -o \"" abs-java-output-jar-file "\""))
                    (when abs-output-directory
                      (concat " -d \"" abs-output-directory "\""))
                    (when abs-product-name
                      (concat " --product " abs-product-name))
-                   (when (and (eql abs-target-language 'maude)
+                   (when (and (eql abs-backend 'maude)
                               (or abs-use-timed-interpreter
                                   (local-variable-p 'abs-clock-limit)))
                      (concat " --timed --limit="
                              (number-to-string (or abs-clock-limit 100))))
-                   (when (and (eql abs-target-language 'maude)
+                   (when (and (eql abs-backend 'maude)
                               (< 0 abs-default-resourcecost))
                      (concat " --defaultcost "
                              (number-to-string abs-default-resourcecost)))
-                   (when (and (eq abs-target-language 'erlang) abs-compile-with-coverage-info)
+                   (when (and (eq abs-backend 'erlang) abs-compile-with-coverage-info)
                      " --debuginfo")
                    ;; this branch must be last since it invokes a second
                    ;; command after `absc'
-                   (when (and (eq abs-target-language 'erlang)
+                   (when (and (eq abs-backend 'erlang)
                               abs-link-source-path)
                      (concat " && cd \"" (abs--real-output-directory) "\" && ./link_sources " abs-link-source-path))
                    " "))))
 
 (defun abs--needs-compilation ()
   "Return non-nil if current file needs to be (re)compiled.
-Expects `abs-target-language' to be bound to the desired backend."
+Expects `abs-backend' to be bound to the desired backend."
   (let* ((abs-output-file
           (abs--absolutify-filename
-           (pcase abs-target-language
+           (pcase abs-backend
              (`maude (abs--maude-filename))
              (`erlang (concat (abs--real-output-directory) "absmodel/Emakefile"))
              (`java (concat (abs--real-output-directory) "ABS/StdLib/Bool.java"))
@@ -629,14 +629,13 @@ Expects `abs-target-language' to be bound to the desired backend."
   "Compile the current buffer after prompting for a compile command.
 The user will be shown a hopefull-correct compile command in the
 minibuffer and can edit it before compilation starts.  Expects
-`abs-target-language' to be bound to the desired backend."
+`abs-backend' to be bound to the desired backend."
   (let ((compile-command (abs--calculate-compile-command)))
     (call-interactively 'compile)))
 
 (defun abs--compile-model-no-prompt ()
   "Compile the current buffer.
-Expects `abs-target-language' to be bound to the desired
-backend."
+Expects `abs-backend' to be bound to the desired backend."
   (compile (abs--calculate-compile-command)))
 
 ;;; Pacify the byte compiler.
@@ -645,9 +644,8 @@ backend."
 
 (defun abs--run-model ()
   "Start the model.
-Expects `abs-target-language' to be bound to the desired
-backend."
-  (pcase abs-target-language
+Expects `abs-backend' to be bound to the desired backend."
+  (pcase abs-backend
     (`maude (save-excursion (run-maude))
             (comint-send-string inferior-maude-buffer
                                 (concat "in \""
@@ -692,16 +690,16 @@ backend."
              (let ((buffer (get-buffer-create buffer-name)))
                (pop-to-buffer buffer)
                (shell-command command buffer))))
-    (_ (error "Don't know how to run with target %s" abs-target-language))))
+    (_ (error "Don't know how to run with target %s" abs-backend))))
 
 (defun abs-next-action (flag)
   "Compile or execute the buffer.
 
 The language backend for compilation can be chosen by giving a
 `C-u' prefix to this command.  The default backend is set via
-customizing or setting `abs-target-language' and can be
-overridden for a specific abs file by giving a file-local value
-via `add-file-local-variable'.
+customizing or setting `abs-backend' and can be overridden for a
+specific abs file by giving a file-local value via
+`add-file-local-variable'.
 
 To compile or run a model that consists of more than one file,
 set `abs-input-files' to a list of filenames.
@@ -718,9 +716,9 @@ Erlang Emacs mode are installed.
 Argument FLAG will prompt for language backend to use if 1, i.e.,
 if the command was invoked with `C-u'."
   (interactive "p")
-  (let ((abs-target-language
+  (let ((abs-backend
          (if (= 1 flag)
-             abs-target-language
+             abs-backend
            (intern (completing-read "Target language: "
                                     '("erlang" "java" "maude")
                                     nil t nil nil "erlang")))))
@@ -779,23 +777,23 @@ A definition can be interface, class, datatype or function."
 (easy-menu-define abs-mode-menu abs-mode-map
   "Abs mode menu."
   '("Abs"
-    ["Compile" (abs--compile-model-no-prompt abs-target-language) :active t]
-    ["Run" (abs--run-model abs-target-language)
-     :active (not (abs--needs-compilation abs-target-language))]
+    ["Compile" (abs--compile-model-no-prompt abs-backend) :active t]
+    ["Run" (abs--run-model abs-backend)
+     :active (not (abs--needs-compilation abs-backend))]
     "---"
     ("Select Backend"
-     ["Maude" (setq abs-target-language 'maude)
+     ["Maude" (setq abs-backend 'maude)
       :active t
       :style radio
-      :selected (eq abs-target-language 'maude)]
-     ["Erlang" (setq abs-target-language 'erlang)
+      :selected (eq abs-backend 'maude)]
+     ["Erlang" (setq abs-backend 'erlang)
       :active t
       :style radio
-      :selected (eq abs-target-language 'erlang)]
-     ["Java" (setq abs-target-language 'java)
+      :selected (eq abs-backend 'erlang)]
+     ["Java" (setq abs-backend 'java)
       :active t
       :style radio
-      :selected (eq abs-target-language 'java)])
+      :selected (eq abs-backend 'java)])
     ("Maude Backend Options"
      ["Timed interpreter"
       (setq abs-use-timed-interpreter (not abs-use-timed-interpreter))
