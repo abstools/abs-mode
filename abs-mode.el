@@ -684,7 +684,9 @@ Expects `abs-backend' to be bound to the desired backend."
                   (buffer-name (concat "*abs java " module "*"))
                   (command (concat "java -cp gen:"
                                    (expand-file-name abs-java-classpath)
-                                   " " module ".Main &")))
+                                   " " module ".Main"
+                                   (when abs-local-port (format " -p %d " abs-local-port))
+                                   " &")))
              (when (get-buffer buffer-name)
                (kill-buffer (get-buffer buffer-name)))
              (let ((buffer (get-buffer-create buffer-name)))
