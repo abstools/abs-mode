@@ -47,16 +47,16 @@
   "Major mode for editing files in the programming / modeling language Abs."
   :group 'languages)
 
+(defconst abs--backends '(java erlang maude prolog)
+  "List of ABS backends.")
+
 (define-obsolete-variable-alias 'abs-target-language 'abs-backend "v1.8")
 (defcustom abs-backend 'erlang
   "The default backend for code generation."
-  :type '(radio (const java)
-                (const erlang)
-                (const maude)
-                (const prolog))
+  :type `(radio ,@(mapcar (lambda (backend) (list 'const backend)) abs--backends))
   :group 'abs)
 (put 'abs-backend 'safe-local-variable
-     #'(lambda (x) (member x '(java erlang maude prolog))))
+     #'(lambda (x) (member x abs--backends)))
 
 (defcustom abs-compiler-program "absc"
   "Command to invoke the Abs compiler.
@@ -118,8 +118,8 @@ well.  The Maude backend will use a default value of 100 in case
 (put 'abs-clock-limit 'safe-local-variable '(lambda (x) (or (integerp x) (null x))))
 
 (defcustom abs-local-port nil
-  "Port where to start the REST API / visualization server (Erlang backend).
-Server will not be started if nil."
+  "Port where to start the Model API.
+If nil, do not start the Model API."
   :type 'integer
   :group 'abs)
 (put 'abs-local-port 'safe-local-variable 'integerp)
@@ -131,16 +131,18 @@ Server will not be started if nil."
 (put 'abs-compile-with-coverage-info 'safe-local-variable 'booleanp)
 
 (defcustom abs-default-resourcecost 0
-  "Default resource cost of executing one ABS statement in the timed interpreter."
+  "Default resource cost of executing one ABS statement in the timed interpreter.
+Only effective for the Maude backend."
   :type 'integer
   :group 'abs)
 (put 'abs-default-resourcecost 'safe-local-variable 'integerp)
 
 (defcustom abs-link-source-path nil
   "Path to link the ABS runtime sources for the erlang backend.
-This enables development of the erlang backend by symlinking its
-sources into the generated code.  Sources will not be linked if
-NIL."
+This is a debugging aid for the erlang backend, symlinking the
+erlang runtime library sources into the generated code so that
+the model does not need to be recompiled when editing the Erlang
+runtime library.  If nil, sources will not be linked."
   :type '(choice (const :tag "Do not link" nil)
                  directory)
   :group 'abs)
@@ -155,7 +157,9 @@ Location of absfrontend.jar when installed via
 (put 'abs-directory 'risky-local-variable t)
 
 (defvar abs-product-name nil
-  "Product to be generated when compiling.")
+  "The product to compile from the software product line.
+When nil, ignore deltas and product declarations and compile the
+base model.")
 (put 'abs-product-name 'safe-local-variable 'stringp)
 
 ;;; Making faces
@@ -337,11 +341,15 @@ Location of absfrontend.jar when installed via
      1))
   "Imenu expression for `abs-mode'.  See `imenu-generic-expression'.")
 
-;; Minimal outline (folding) support
+;;; Minimal outline (folding) support
 (defvar abs--outline-regexp
   (rx bol (or "delta" "def" "data" "type" "exception" "class" "interface" "module")))
 (defvar abs--outline-level (lambda () (1+ (/ (current-indentation) abs-indent))))
 
+(defun abs--read-backend ()
+  (interactive)
+  (let ((backend-name (completing-read "Backend: " abs--backends nil t nil nil abs-backend)))
+    (intern-soft backend-name)))
 ;;; Minimal auto-insert mode support
 (define-auto-insert 'abs-mode '("Module name: " "module " str ";" ?\n ?\n))
 
@@ -719,11 +727,7 @@ Argument FLAG will prompt for language backend to use if 1, i.e.,
 if the command was invoked with `C-u'."
   (interactive "p")
   (let ((abs-backend
-         (if (= 1 flag)
-             abs-backend
-           (intern (completing-read "Target language: "
-                                    '("erlang" "java" "maude")
-                                    nil t nil nil "erlang")))))
+         (if (= 1 flag) abs-backend (or (abs--read-backend) abs-backend))))
     (if (abs--needs-compilation)
         (abs--compile-model)
       (abs--run-model))))
