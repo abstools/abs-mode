@@ -484,6 +484,15 @@ buffer:
 (put 'abs-input-files 'safe-local-variable
      (lambda (list) (cl-every #'stringp list)))
 
+(defvar abs-modelapi-index-file nil
+  "The Model API index file to compile into this model, if any.")
+(put 'abs-modelapi-index-file 'safe-local-variable #'stringp)
+
+(defvar abs-modelapi-static-dir nil
+  "The Model API static directory containing to compile into this model, if any.")
+(put 'abs-modelapi-static-dir 'safe-local-variable #'stringp)
+
+
 (defvar abs-compile-command nil
   "The compile command called by \\[abs-next-action].
 The default behavior is to call \"make\" if a Makefile is in the
@@ -588,6 +597,10 @@ Expects `abs-backend' to be bound to the desired backend."
                    ;; FIXME: make it work with filenames with spaces
                    (mapconcat (lambda (s) (concat "\"" s "\""))
                               (abs--input-files) " ")
+                   (when abs-modelapi-index-file
+                     (concat " --modelapi-index-file \"" abs-modelapi-index-file "\""))
+                   (when abs-modelapi-static-dir
+                     (concat " --modelapi-static-dir \"" abs-modelapi-static-dir "\""))
                    (when (eql abs-backend 'maude)
                      (concat " -o \"" (abs--maude-filename) "\""))
                    (when (and abs-java-output-jar-file (eql abs-backend 'java))

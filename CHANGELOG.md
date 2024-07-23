@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - It is now possible to “fold” (collapse) code.  This is implemented via the built-in Emacs `outline-minor-mode`.
 
+- The variables `abs-modelapi-index-file` and `abs-modelapi-static-dir` can be set as file- or directory-local variables, and will pass the corresponding options to the compiler.
+
 ### Fixed
 
 ### Changed
