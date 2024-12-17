@@ -1,0 +1,5 @@
+# -*- mode: snippet; -*-
+# name: filter
+# key: filter
+# --
+filter((${1:type} ${2:element}) => ${3:expression})(${4:list})

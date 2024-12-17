@@ -1,0 +1,5 @@
+# -*- mode: snippet; -*-
+# name: foldl
+# key: foldl
+# --
+foldl((${1:type} ${2:element}, ${3:type} ${4:accumulator}) => ${5:expression})(${6:list}, ${7:initval})
