@@ -706,6 +706,7 @@ Expects `abs-backend' to be bound to the desired backend."
                   (command (concat "java -cp gen:"
                                    (expand-file-name abs-java-classpath)
                                    " " module ".Main"
+                                   (when abs-clock-limit (format " -l %d " abs-clock-limit))
                                    (when abs-local-port (format " -p %d " abs-local-port))
                                    " &")))
              (when (get-buffer buffer-name)
