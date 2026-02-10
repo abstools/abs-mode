@@ -3,8 +3,7 @@
 
 # generated files
 abs-mode-autoloads.el
-.cask
-.emacs/elpa/
-.emacs/quelpa/
-.emacs/.emacs-custom.el
-.elpa
+
+# Added automatically by ‘eldev init’.
+/.eldev
+/Eldev-local

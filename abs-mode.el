@@ -1,11 +1,11 @@
 ;;; abs-mode.el --- Major mode for the modeling language Abs -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2022  Rudolf Schlatte
+;; Copyright (C) 2010-2022, 2026  Rudolf Schlatte
 
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode
 ;; Version: 1.7
-;; Package-Requires: ((emacs "26.1") (erlang "2.8") (maude-mode "0.3") (flymake "1.0") (yasnippet "0.14.0"))
+;; Package-Requires: ((emacs "27.1") (erlang "2.8") (maude-mode "0.3") (flymake "1.0") (yasnippet "0.14.0"))
 ;; Keywords: languages
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -244,7 +244,7 @@ base model.")
    (list (concat "\\(" abs--id-regexp "\\)[[:space:]]*(") 1
          'abs-function-name-face)
    (cons (concat "\\(" abs--id-regexp "\\)") 'abs-variable-name-face)
-   (list "\\<\\(# \w+\\)\\>" 1 'font-lock-warning-face t))
+   (list "\\<\\(# \\w+\\)\\>" 1 'font-lock-warning-face t))
   "Abs keywords.")
 
 ;;; cc-mode wants different fontification levels, but we only offer one.
@@ -347,7 +347,7 @@ base model.")
 (defvar abs--outline-level (lambda () (1+ (/ (current-indentation) abs-indent))))
 
 (defun abs--read-backend ()
-  (interactive)
+  "Prompt the user to choose a backend."
   (let ((backend-name (completing-read "Backend: " abs--backends nil t nil nil abs-backend)))
     (intern-soft backend-name)))
 ;;; Minimal auto-insert mode support

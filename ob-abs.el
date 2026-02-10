@@ -1,6 +1,6 @@
 ;;; ob-abs.el --- org-babel functions for Abs -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018 Rudolf Schlatte
+;; Copyright (C) 2018, 2026 Rudolf Schlatte
 
 ;; Author: Rudi Schlatte <rudi@constantly.at>
 ;; URL: https://github.com/abstools/abs-mode

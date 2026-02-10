@@ -1,0 +1,8 @@
+; -*- mode: emacs-lisp; lexical-binding: t -*-
+
+(eldev-use-package-archive 'gnu-elpa)
+(eldev-use-package-archive 'melpa)
+(eldev-use-plugin 'autoloads)
+(eldev-use-plugin 'maintainer)
+(setq eldev-main-fileset '("abs-mode.el"))   ; ignore ob-abs.el for now
+(setq eldev-project-main-file "abs-mode.el") ; eldev doctor complains otherwise
