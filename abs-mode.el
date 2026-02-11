@@ -37,6 +37,7 @@
 (require 'cc-langs)
 (require 'yasnippet nil t)              ; ignore if not installed
 (require 'speedbar)
+(require 'json)
 (autoload 'inferior-erlang "erlang-autoloads" nil t)
 (autoload 'run-maude "maude-mode" nil t)
 
